@@ -3,7 +3,6 @@
 #include <stdio.h>
 
 
-
 Value* specialDefine(List* args, List* env) {
     Value* label = first(args);
     Value* value = first(rest(args)->listval);
@@ -89,53 +88,54 @@ Value* specialQuote(List* args, List* env) {
     return first(args);
 }
 
-SpecialForm* makeSpecial(String* name, int numargs, char flags[], Value* (*func)(List*,List*)) {
+Value* makeSpecial(String* name, int numargs, char flags[], Value* (*func)(List*,List*)) {
     SpecialForm* sf = malloc(sizeof(SpecialForm));
     sf->name = name;
     sf->numArgs = numargs;
     for (int i = 0; i < numargs; i++)
         sf->flags[i] = flags[i];
     sf->func = func;
-    sf->next = NULL;
-    return sf;
+    Value* vv = malloc(sizeof(Value));
+    vv->sf = sf;
+    vv->type = AS_SF;
+    return vv;
 }
 
-SpecialForm* specialForms;
+List* specialForms;
 
 
 void initSpecials() {
     char flags[3];
+    specialForms = createList();
+    flags[0] = NO_EVAL;
+    flags[1] = NO_EVAL;
+    flags[2] = NO_EVAL;
+    specialForms = appendList(specialForms, makeSpecial(makeString("let",3), 2, flags, &specialLet));
+    specialForms = appendList(specialForms, makeSpecial(makeString("lambda", 6), 2, flags, &specialLambda));
+    specialForms = appendList(specialForms, makeSpecial(makeString("&", 1), 2, flags, &specialLambda));
+    specialForms = appendList(specialForms, makeSpecial(makeString("'", 1), 0, flags, &specialQuote));
+    specialForms = appendList(specialForms, makeSpecial(makeString("cond",4), 0, flags, &specialCond));
+    specialForms = appendList(specialForms, makeSpecial(makeString("do",2), 0, flags, &specialDo));
     flags[0] = NO_EVAL;
     flags[1] = EVAL;
     flags[2] = NO_EVAL;
-    specialForms = makeSpecial(makeString("define", 6), 2, flags, &specialDefine);
-    SpecialForm* t = specialForms;
-    flags[1] = NO_EVAL;
-    t->next = makeSpecial(makeString("lambda", 6), 2, flags, &specialLambda);
-    t = t->next;
-    t->next = makeSpecial(makeString("&", 1), 2, flags, &specialLambda);
-    t = t->next;
-    t->next = makeSpecial(makeString("'", 1), 0, flags, &specialQuote);
-    t = t->next;
+    specialForms = appendList(specialForms, makeSpecial(makeString("define", 6), 2, flags, &specialDefine));
     flags[0] = EVAL; 
-    t->next = makeSpecial(makeString("if", 2), 3, flags, &specialIf);
-    t = t->next;
-    flags[0] = NO_EVAL;
-    t->next = makeSpecial(makeString("let",3), 2, flags, &specialLet);
-    t = t->next;
+    flags[1] = NO_EVAL;
+    flags[2] = NO_EVAL;
+    specialForms = appendList(specialForms, makeSpecial(makeString("if", 2), 3, flags, &specialIf));
+    flags[0] = EVAL; 
     flags[1] = EVAL;
-    t->next = makeSpecial(makeString("set",3), 2, flags, &specialSet);
-    t = t->next;
-    t->next = makeSpecial(makeString("cond",4), 0, flags, &specialCond);
-    t = t->next;
-    t->next = makeSpecial(makeString("do",2), 0, flags, &specialDo);
+    flags[2] = NO_EVAL;
+    specialForms = appendList(specialForms, makeSpecial(makeString("set",3), 2, flags, &specialSet));
     
 }
 
 SpecialForm* checkSpecials(String* name) {
-    for (SpecialForm* it = specialForms; it != NULL; it = it->next) {
-        if (compareString(name, it->name)) {
-            return it;
+    for (listnode* it = specialForms->head; it != NULL; it = it->next) {
+        SpecialForm* sf = it->info->sf;
+        if (compareString(name, sf->name)) {
+            return sf;
         }
     }
     return NULL;

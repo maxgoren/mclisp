@@ -11,7 +11,7 @@ Value* speicalSet(List*,List*);
 Value* specialQuote(List*,List*);
 Value* specialDo(List*,List*);
 Value* specialCons(List*,List*);
-SpecialForm* makeSpecial(String* name, int numargs, char flags[], Value* (*func)(List*,List*));
+Value* makeSpecial(String* name, int numargs, char flags[], Value* (*func)(List*,List*));
 void initSpecials();
 SpecialForm* checkSpecials(String* name);
 Value* applySpecial(SpecialForm* sf, List* args, List* env);

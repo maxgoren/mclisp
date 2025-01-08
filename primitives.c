@@ -114,6 +114,16 @@ Value* primCons(List* list) {
     return makeListVal(nl);
 }
 
+Value* primAppend(List* list) {
+    Value* pri = list->head->info;
+    Value* sec = list->head->next->info;
+    if (sec->type != AS_LIST) {
+        return makeListVal(createList());
+    }
+    sec->listval = appendList(sec->listval, pri);
+    return sec;
+}
+
 Value* primId(List* list) {
     Value* item = first(list);
     char *TypeLabels[6] = {"num", "symbol","bool","binding","func", "list"};

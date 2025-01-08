@@ -4,14 +4,14 @@
 #include <stdlib.h>
 
 enum ValueType {
-    AS_NUM, AS_SYMBOL, AS_BOOL, AS_BINDING, AS_FUNCTION, AS_LIST
+    AS_NUM, AS_SYMBOL, AS_BOOL, AS_BINDING, AS_FUNCTION, AS_LIST, AS_SF
 };
 
 typedef struct List List;
 typedef struct Function Function;
 typedef struct Binding Binding;
 typedef struct String String;
-
+typedef struct SpecialForm SpecialForm;
 typedef struct {
     enum ValueType type;
     union {
@@ -21,6 +21,7 @@ typedef struct {
         Function* funcval;
         Binding* bindval;
         String* stringval;
+        SpecialForm* sf;
     };
     int mark;
 } Value;
@@ -67,7 +68,6 @@ typedef struct SpecialForm {
     int numArgs;
     char flags[3];
     Value* (*func)(List*, List*);
-    struct SpecialForm* next;
 } SpecialForm;
 
 typedef struct GC_ {
