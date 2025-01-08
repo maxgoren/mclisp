@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "specialform.h": "c",
+        "eval.h": "c",
+        "ostream": "cpp"
+    }
+}
