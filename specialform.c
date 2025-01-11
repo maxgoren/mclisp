@@ -3,7 +3,7 @@
 #include <stdio.h>
 
 
-Value* specialDefine(List* args, List* env) {
+Value* sfDefine(List* args, List* env) {
     Value* label = first(args);
     Value* value = first(rest(args)->listval);
     String* nstr = makeString(label->stringval->data, label->stringval->len);
@@ -11,7 +11,7 @@ Value* specialDefine(List* args, List* env) {
     return label;
 }
 
-Value* specialIf(List* args, List* env) {
+Value* sfIf(List* args, List* env) {
     Value* cond = args->head->info;
     Value* istru = args->head->next->info;
     Value* isfalse = args->head->next->next->info;
@@ -20,7 +20,7 @@ Value* specialIf(List* args, List* env) {
     return eval(isfalse, env);
 }
 
-Value* specialLambda(List* args, List* env) {
+Value* sfLambda(List* args, List* env) {
     Function* func = malloc(sizeof(Function));
     func->type = LAMBDA;
     func->code = first(rest(args)->listval);
@@ -70,13 +70,15 @@ Value* specialCond(List* args, List* env) {
     for (listnode* it = args->head; it != NULL; it = it->next) {
         Value* test = first(it->info->listval);
         Value* act = first(rest(it->info->listval)->listval);
+        if (test->type == AS_SYMBOL && compareString(makeString("else", 4),test->stringval))
+            return eval(act, env); 
         if (eval(test, env)->boolval)
             return eval(act, env);
     }
     return makeListVal(createList());
 }
 
-Value* specialDo(List* args, List* env) {
+Value* sfDo(List* args, List* env) {
     Value* result = makeIntVal(0);
     for (listnode* it = args->head; it != NULL; it = it->next) {
         result = eval(it->info, env);
@@ -84,11 +86,11 @@ Value* specialDo(List* args, List* env) {
     return result;
 }
 
-Value* specialQuote(List* args, List* env) {
+Value* sfQuote(List* args, List* env) {
     return first(args);
 }
 
-Value* makeSpecial(String* name, int numargs, char flags[], Value* (*func)(List*,List*)) {
+Value* createSpecialForm(String* name, int numargs, char flags[], Value* (*func)(List*,List*)) {
     SpecialForm* sf = malloc(sizeof(SpecialForm));
     sf->name = name;
     sf->numArgs = numargs;
@@ -104,34 +106,33 @@ Value* makeSpecial(String* name, int numargs, char flags[], Value* (*func)(List*
 List* specialForms;
 
 
-void initSpecials() {
+void initSpecialForms() {
     char flags[3];
     specialForms = createList();
     flags[0] = NO_EVAL;
     flags[1] = NO_EVAL;
     flags[2] = NO_EVAL;
-    specialForms = appendList(specialForms, makeSpecial(makeString("let",3), 2, flags, &specialLet));
-    specialForms = appendList(specialForms, makeSpecial(makeString("lambda", 6), 2, flags, &specialLambda));
-    specialForms = appendList(specialForms, makeSpecial(makeString("&", 1), 2, flags, &specialLambda));
-    specialForms = appendList(specialForms, makeSpecial(makeString("'", 1), 0, flags, &specialQuote));
-    specialForms = appendList(specialForms, makeSpecial(makeString("cond",4), 0, flags, &specialCond));
-    specialForms = appendList(specialForms, makeSpecial(makeString("do",2), 0, flags, &specialDo));
+    specialForms = appendList(specialForms, createSpecialForm(makeString("let",3), 2, flags, &specialLet));
+    specialForms = appendList(specialForms, createSpecialForm(makeString("lambda", 6), 2, flags, &sfLambda));
+    specialForms = appendList(specialForms, createSpecialForm(makeString("&", 1), 2, flags, &sfLambda));
+    specialForms = appendList(specialForms, createSpecialForm(makeString("'", 1), 0, flags, &sfQuote));
+    specialForms = appendList(specialForms, createSpecialForm(makeString("cond",4), 0, flags, &specialCond));
+    specialForms = appendList(specialForms, createSpecialForm(makeString("do",2), 0, flags, &sfDo));
     flags[0] = NO_EVAL;
     flags[1] = EVAL;
     flags[2] = NO_EVAL;
-    specialForms = appendList(specialForms, makeSpecial(makeString("define", 6), 2, flags, &specialDefine));
+    specialForms = appendList(specialForms, createSpecialForm(makeString("define", 6), 2, flags, &sfDefine));
     flags[0] = EVAL; 
     flags[1] = NO_EVAL;
     flags[2] = NO_EVAL;
-    specialForms = appendList(specialForms, makeSpecial(makeString("if", 2), 3, flags, &specialIf));
-    flags[0] = EVAL; 
+    specialForms = appendList(specialForms, createSpecialForm(makeString("if", 2), 3, flags, &sfIf));
+    flags[0] = NO_EVAL; 
     flags[1] = EVAL;
     flags[2] = NO_EVAL;
-    specialForms = appendList(specialForms, makeSpecial(makeString("set",3), 2, flags, &specialSet));
-    
+    specialForms = appendList(specialForms, createSpecialForm(makeString("set!",3), 2, flags, &specialSet));
 }
 
-SpecialForm* checkSpecials(String* name) {
+SpecialForm* findSpecialForm(String* name) {
     for (listnode* it = specialForms->head; it != NULL; it = it->next) {
         SpecialForm* sf = it->info->sf;
         if (compareString(name, sf->name)) {
@@ -141,7 +142,8 @@ SpecialForm* checkSpecials(String* name) {
     return NULL;
 }
 
-Value* applySpecial(SpecialForm* sf, List* args, List* env) {
+Value* applySpecialForm(SpecialForm* sf, List* args, List* env) {
+    printf("apply special(%s ", sf->name->data); printList(args); printf(")\n");
     List* evald = createList();
     listnode* it = args->head; 
     int i = 0; 

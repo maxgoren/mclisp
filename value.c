@@ -202,20 +202,21 @@ List* mark(List* env) {
         return env;
     listnode* x;
     x = env->head;
+    listnode* tx = x;
     while (x != NULL) {
         //printf("Mark: "); printValue(x->info); printf("\n");
         x->info->mark = GREY;
         if (x->info->type == AS_BINDING) {
-        x->info->bindval->symbol->mark = GREY;
-        x->info->bindval->value->mark = GREY;
+            x->info->bindval->symbol->mark = GREY;
+            x->info->bindval->value->mark = GREY;
             if (x->info->bindval->value->type == AS_LIST)
                 mark(x->info->bindval->value->listval);
-            if (x->info->bindval->value->type == AS_FUNCTION) {
-                mark(x->info->bindval->value->funcval->freeVars);
-            }
+        } else if (x->info->type == AS_LIST) {
+            mark(x->info->listval);
         }
         x = x->next;
     }
+    env->head = tx;
     return env;
 }
 
@@ -237,7 +238,6 @@ List* sweep(List* env) {
             printf(" has become unreachable, collecting.\n");*/
             p->next = p->next->next;
             x->next = NULL;
-            //freeValue(x->info);
             free(x);
             x = p->next;
             frc++;
@@ -257,13 +257,13 @@ List* sweep(List* env) {
     return env;
 }
 
-List* addBinding(List* env, Binding* binding) {
+List* bindSymbolToValue(List* env, Binding* binding) {
     env = appendList(env, makeBindingVal(binding));
     return env;
 }
 
-List* addPrimitive(List* env, String* symbol, Value* (func)(List*)) {
+List* makePrim(List* env, String* symbol, Value* (func)(List*)) {
     Binding* binding = makeBinding(makeStringVal(symbol), makeFunctionValue(makePrimitveFunction(func)));
-    env = addBinding(env, binding);
+    env = bindSymbolToValue(env, binding);
     return env;
 }

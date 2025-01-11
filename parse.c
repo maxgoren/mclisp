@@ -13,7 +13,7 @@ bool shouldSkip(char c) {
 }
 
 bool isSpecialChar(char c) {
-    return (c == '-' ||c == '?' || c == '+' || c == '*' || c == '/' || c == '\'' || c == '&');
+    return (c == '-' ||c == '?' || c == '+' || c == '!' || c == '*' || c == '/' || c == '\'' || c == '&' || c == '%');
 }
 
 Value* parseSymbol(char buff[], int i) {
@@ -40,7 +40,7 @@ List* addToList(List* addTo, Value* item, bool isquoted) {
 }
 
 int t = 0;
-List* parse(char* buff) {
+List* stringToList(char* buff) {
     List* result = createList();
     int i = 0;
     bool quoted = false;
@@ -54,7 +54,6 @@ List* parse(char* buff) {
             quoted = true;
             i++;
         }
-
         if (isalpha(buff[i]) || isSpecialChar(buff[i])) {
             int m = i;
             Value* sym = parseSymbol(buff, i);
@@ -67,7 +66,7 @@ List* parse(char* buff) {
             }
             result = addToList(result, makeIntVal(val), quoted);
         } else if (buff[i] == '(') {
-            Value* sym = makeListVal(parse(buff+i));
+            Value* sym = makeListVal(stringToList(buff+i));
             result = addToList(result, sym, quoted);
             i = i+t+1;
         } else if (buff[i] == ')') {
@@ -77,8 +76,4 @@ List* parse(char* buff) {
         quoted = false;
     }
     return result;
-}
-
-List* stringToList(char* buff) {
-    return parse(buff);
 }

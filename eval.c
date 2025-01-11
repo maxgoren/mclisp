@@ -33,7 +33,13 @@ Value* envLookUp(List* env, Value* symbol) {
     return makeListVal(createList());
 }
 
+int d = 0;
+
 Value* eval(Value* value, List* env) {
+    d++;
+    for (int i = 0; i < d; i++) printf(" ");
+    printf("eval("); printValue(value); printf(")\n");
+    d--;
     switch (value->type) {
         case AS_NUM: return value;
         case AS_BOOL: return value;
@@ -48,9 +54,15 @@ Value* eval(Value* value, List* env) {
 }
 
 Value* evalList(List* list, List* env) {
+    d++;
+    for (int i = 0; i < d; i++) printf(" ");
+    printf("evallist("); printList(list); printf(")\n");
     //check special forms
-    if (first(list)->type == AS_SYMBOL && checkSpecials(first(list)->stringval) != NULL) {
-        return applySpecial(checkSpecials(first(list)->stringval), rest(list)->listval, env);
+    if (first(list)->type == AS_SYMBOL && findSpecialForm(first(list)->stringval) != NULL) {
+        d++;
+        for (int i = 0; i < d; i++) printf(" ");
+        d-=2;
+        return applySpecialForm(findSpecialForm(first(list)->stringval), rest(list)->listval, env);
     }
     //Evalute Arguments
     List* evald = createList();
@@ -59,24 +71,35 @@ Value* evalList(List* list, List* env) {
     }
     //Apply function
     if (first(evald)->type == AS_FUNCTION) {
+        d--;
         return apply(first(evald)->funcval, rest(evald)->listval, env);
     }
-    //return result as listval
+    d--;
     return makeListVal(evald);
 }
 
 Value* apply(Function* func, List* args, List* env) {
+        d++;
+    for (int i = 0; i < d; i++) printf(" ");
+    printf("apply("); printList(args); printf(")\n");
     if (func->type == PRIMITIVE) {
-        //printf("function is a primitive\n");
+        d++;
+        for (int i = 0; i < d; i++) printf(" ");
+        printf("function is a primitive\n");
+        d--;
         return func->func(args);
     }
     if (func->type == LAMBDA) {
-        //printf("function is a lambda\n");
+        d++;
+        for (int i = 0; i < d; i++) printf(" ");
+        printf("function is a lambda\n");
         List* nenv = makeNewEnvironment(func->freeVars, args);
         nenv = addMissing(nenv, env);
         nenv = addMissing(nenv, func->env);
+        d--;
         return eval(func->code, nenv);
     }
+    d--;
     return makeListVal(createList());
 }
 
@@ -92,6 +115,13 @@ Value* applyMathPrim(char op, List* list) {
                     return makeIntVal(0);
                 result /= it->info->intval; 
             } break;
+            case '%': {
+                if (it->info->intval == 0)
+                    return makeIntVal(0);
+                result = result % it->info->intval; 
+            } break;
+            case '<': { result = (it->info->intval < result) ? it->info->intval:result; } break;
+            case '>': { result = (it->info->intval > result) ? it->info->intval:result; } break;
             default: break;
         }
     }

@@ -60,8 +60,8 @@ typedef struct Function {
     Value* code;
 } Function;
 
-#define NO_EVAL  'N'
-#define EVAL  'Y'
+#define NO_EVAL  0
+#define EVAL  1
 
 typedef struct SpecialForm {
     String* name;
@@ -74,7 +74,7 @@ typedef struct GC_ {
     List* objList;
 } GC;
 
-void init(List* env);
+List* init(List* env);
 void printValue(Value* val);
 bool compareValue(Value* lhs, Value* rhs);
 bool compareString(String* lhs, String* rhs);
@@ -90,8 +90,8 @@ Value* makeBindingVal(Binding* binding);
 Value* makeFunctionValue(Function* function);
 Function* makePrimitveFunction(Value* (*func)(List*));
 Function* makeLambdaFunction(List* vars, List* code, List* env);
-List* addBinding(List*,Binding*);
-List* addPrimitive(List*,String*,Value* (func)(List*));
+List* bindSymbolToValue(List*,Binding*);
+List* makePrim(List*,String*,Value* (func)(List*));
 void freeValue(Value* value);
 void freeBinding(Binding* binding);
 void freeString(String* str);

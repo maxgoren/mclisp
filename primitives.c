@@ -21,6 +21,10 @@ Value* primDiv(List* list) {
     return applyMathPrim('/', list);
 }
 
+Value* primMod(List* list) {
+    return applyMathPrim('%', list);
+}
+
 Value* primCar(List* list) {
     return first(list->head->info->listval);
 }
@@ -128,4 +132,44 @@ Value* primId(List* list) {
     Value* item = first(list);
     char *TypeLabels[6] = {"num", "symbol","bool","binding","func", "list"};
     return makeStringVal(makeString(TypeLabels[item->type], strlen(TypeLabels[item->type])));
+}
+
+Value* primMin(List* list) {
+    return applyMathPrim('<', list);
+}
+
+Value* primMax(List* list) {
+    return applyMathPrim('>', list);
+}
+
+Value* primSymbolicEquality(List* args) {
+    Value* va = first(args);
+    Value* vb = first(rest(args)->listval);
+    if (va->type == AS_SYMBOL && vb->type == AS_SYMBOL)
+        return makeBoolVal(compareValue(va, vb));
+    return makeListVal(createList());
+}
+
+Value* primList(List* args) {
+    List* reso = createList();
+    List* env = createList();
+    for (listnode* it = args->head; it != NULL; it = it->next) {
+        reso = appendList(reso, it->info);
+    }
+    return makeListVal(reso);
+}
+
+Value* primJoin(List* list) {
+    List* reso = createList();
+    List* env = createList();
+    for (listnode* it = list->head; it != NULL; it = it->next) {
+        if (it->info->type == AS_LIST) {
+            for (listnode* iit = it->info->listval->head; iit != NULL; iit = iit->next) {
+                reso = appendList(reso, iit->info);
+            }
+        } else {
+            reso = appendList(reso, it->info);
+        }
+    }
+    return makeListVal(reso);
 }

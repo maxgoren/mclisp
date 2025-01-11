@@ -103,11 +103,7 @@ Value* first(List* list) {
 }
 
 Value* rest(List* list) {
-    List* nl = createList();
-    nl->tail = list->tail;
-    nl->head = list->head->next;
-    nl->count = list->count - 1;
-    return makeListVal(nl);
+    return makeListVal(copyOmitNth(list, 0));
 }
 
 void printList(List* list) {
