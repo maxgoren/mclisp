@@ -69,7 +69,6 @@ void repl() {
         fgets(buff, sizeof(buff), stdin);
         if (strcmp(buff, "quit") == 0)
             return;
-        for (int m = 0;buff[m];m++) if (buff[m] == '\n') { buff[m] = '\0'; break; }
         List* asList = stringToList(buff);
         printList(asList);
         printf("\n => ");
@@ -77,6 +76,7 @@ void repl() {
         printf("\n");
         env = mark(env);
         env = sweep(env);
+        memset(buff, '\0', sizeof(buff));
     }
 }
 

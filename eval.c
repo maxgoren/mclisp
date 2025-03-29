@@ -2,6 +2,20 @@
 #include "specialform.h"
 #include <stdio.h>
 
+int dep = 0;
+
+void enter(char* str) {
+    dep++;
+    say(str);
+}
+void say(char* str) {
+    for (int i = 0; i < dep; i++) printf("  ");
+    printf("%s ", str);
+}
+void leave() {
+    dep--;
+}
+
 List* makeNewEnvironment(List* vars, List* vals) {
     List* nenv = createList();
     listnode* var = vars->head;
@@ -36,14 +50,13 @@ Value* envLookUp(List* env, Value* symbol) {
 int d = 0;
 
 Value* eval(Value* value, List* env) {
-    d++;
-    for (int i = 0; i < d; i++) printf(" ");
-    printf("eval("); printValue(value); printf(")\n");
-    d--;
+    enter("eval("); printValue(value); printf(")\n");
+    leave();
     switch (value->type) {
         case AS_NUM: return value;
         case AS_BOOL: return value;
         case AS_FUNCTION: return value;
+        case AS_ERROR: return value;
         case AS_SYMBOL: return envLookUp(env, value);
         case AS_LIST: {
             return evalList(value->listval, env);
@@ -54,14 +67,11 @@ Value* eval(Value* value, List* env) {
 }
 
 Value* evalList(List* list, List* env) {
-    d++;
-    for (int i = 0; i < d; i++) printf(" ");
-    printf("evallist("); printList(list); printf(")\n");
-    //check special forms
+    enter("evallist("); printList(list); printf(")\n");
+    if (listEmpty(list))
+        return list;
     if (first(list)->type == AS_SYMBOL && findSpecialForm(first(list)->stringval) != NULL) {
-        d++;
-        for (int i = 0; i < d; i++) printf(" ");
-        d-=2;
+        leave();
         return applySpecialForm(findSpecialForm(first(list)->stringval), rest(list)->listval, env);
     }
     //Evalute Arguments
@@ -71,39 +81,56 @@ Value* evalList(List* list, List* env) {
     }
     //Apply function
     if (first(evald)->type == AS_FUNCTION) {
-        d--;
+        leave();
         return apply(first(evald)->funcval, rest(evald)->listval, env);
     }
-    d--;
+    leave();
     return makeListVal(evald);
 }
 
+Value* applySpecialForm(SpecialForm* sf, List* args, List* env) {
+    enter("apply special("); printf("%s ", sf->name->data); printList(args); printf(")\n");
+    List* evald = createList();
+    listnode* it = args->head; 
+    int i = 0; 
+    while (it != NULL) {
+        Value* result = it->info;
+        if (i < sf->numArgs && sf->flags[i] == EVAL) {
+            result = eval(result, env);
+        }
+        evald = appendList(evald, result);
+        it = it->next;
+        i++;
+    }
+    leave();
+    return sf->func(evald, env);
+}
+
 Value* apply(Function* func, List* args, List* env) {
-        d++;
-    for (int i = 0; i < d; i++) printf(" ");
-    printf("apply("); printList(args); printf(")\n");
+    enter("apply("); printList(args); printf(")\n");
     if (func->type == PRIMITIVE) {
-        d++;
-        for (int i = 0; i < d; i++) printf(" ");
-        printf("function is a primitive\n");
-        d--;
+        say("function is a primitive\n");
+        leave();
         return func->func(args);
     }
     if (func->type == LAMBDA) {
-        d++;
-        for (int i = 0; i < d; i++) printf(" ");
-        printf("function is a lambda\n");
+        say("function is a lambda\n");
         List* nenv = makeNewEnvironment(func->freeVars, args);
-        nenv = addMissing(nenv, env);
         nenv = addMissing(nenv, func->env);
-        d--;
+        nenv = addMissing(nenv, env);
+        leave();
         return eval(func->code, nenv);
     }
-    d--;
+    leave();
     return makeListVal(createList());
 }
 
 Value* applyMathPrim(char op, List* list) {
+    char msg[255];
+    sprintf(msg, "apply math prim (%c ", op);
+    enter(msg);
+    printList(list);
+    printf("\n");
     int result = first(list)->intval;
     for (listnode* it = rest(list)->listval->head; it != NULL; it = it->next) {
         switch (op) {
@@ -111,13 +138,17 @@ Value* applyMathPrim(char op, List* list) {
             case '-': { result -= it->info->intval; } break;
             case '*': { result *= it->info->intval; } break;
             case '/': { 
-                if (it->info->intval == 0)
+                if (it->info->intval == 0) {
+                    leave();
                     return makeIntVal(0);
+                }
                 result /= it->info->intval; 
             } break;
             case '%': {
-                if (it->info->intval == 0)
+                if (it->info->intval == 0) {
+                    leave();
                     return makeIntVal(0);
+                }
                 result = result % it->info->intval; 
             } break;
             case '<': { result = (it->info->intval < result) ? it->info->intval:result; } break;
@@ -125,6 +156,7 @@ Value* applyMathPrim(char op, List* list) {
             default: break;
         }
     }
+    leave();
     return makeIntVal(result);
 }
 

@@ -13,6 +13,6 @@ Value* sfDo(List*,List*);
 Value* sfCons(List*,List*);
 Value* createSpecialForm(String* name, int numargs, char flags[], Value* (*func)(List*,List*));
 void initSpecialForms();
+void setFlags(char flags[], int a, int b, int c);
 SpecialForm* findSpecialForm(String* name);
-Value* applySpecialForm(SpecialForm* sf, List* args, List* env);
 #endif

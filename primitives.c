@@ -101,7 +101,7 @@ Value* primNot(List* list) {
 }
 
 Value* primCons(List* list) {
-    Value* val = list->head->info;
+    Value* val = first(list);
     Value* into = list->head->next->info;
 
     List* nl = createList();

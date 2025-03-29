@@ -2,6 +2,7 @@
     "files.associations": {
         "specialform.h": "c",
         "eval.h": "c",
-        "ostream": "cpp"
+        "ostream": "cpp",
+        "stdio.h": "c"
     }
 }

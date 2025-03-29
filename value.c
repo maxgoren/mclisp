@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 #include "value.h"
 #include "list.h"
 #include "primitives.h"
@@ -64,6 +65,22 @@ Value* makeStringVal(String* str) {
     Value* nv = malloc(sizeof(Value));
     nv->type = AS_SYMBOL;
     nv->stringval = str;
+    registerObject(collector, nv);
+    return nv;
+}
+
+Value* makeError(String* str) {
+    Value* nv = malloc(sizeof(Value));
+    nv->type = AS_ERROR;
+    nv->stringval = str;
+    registerObject(collector, nv);
+    return nv;
+}
+
+Value* makeError(char* str) {
+    Value* nv = malloc(sizeof(Value));
+    nv->type = AS_ERROR;
+    nv->stringval = makeString(str, strlen(str));
     registerObject(collector, nv);
     return nv;
 }

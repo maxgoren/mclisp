@@ -4,7 +4,7 @@
 #include <stdlib.h>
 
 enum ValueType {
-    AS_NUM, AS_SYMBOL, AS_BOOL, AS_BINDING, AS_FUNCTION, AS_LIST, AS_SF
+    AS_NUM, AS_SYMBOL, AS_BOOL, AS_BINDING, AS_FUNCTION, AS_LIST, AS_SF, AS_ERROR
 };
 
 typedef struct List List;
@@ -82,6 +82,7 @@ bool compareList(List* lhs, List* rhs);
 bool compareBinding(Binding* lhs, Binding* rhs);
 String* makeString(char* str, int len);
 Binding* makeBinding(Value* symbol, Value* value);
+Value* makeError(String* str);
 Value* makeIntVal(int value);
 Value* makeStringVal(String* val);
 Value* makeListVal(List* list);
