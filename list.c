@@ -11,7 +11,7 @@ bool listEmpty(List* list) {
     return list != NULL && list->head == NULL;
 }
 
-int findList(List* list, Value* value) {
+int findList(List* list, Atom* value) {
     int k = 0;
     for (listnode* it = list->head; it != NULL; it = it->next) {
         if (compareValue(value, it->info))
@@ -29,7 +29,7 @@ List* createList() {
     return nl;
 }
 
-List* pushList(List* list, Value* value) {
+List* pushList(List* list, Atom* value) {
     listnode* nl = makeListNode(value);
     nl->next = list->head;
     list->head = nl;
@@ -38,7 +38,7 @@ List* pushList(List* list, Value* value) {
     return list;
 }
 
-List* appendList(List* list, Value* value) {
+List* appendList(List* list, Atom* value) {
     listnode* ln = makeListNode(value);
     if (list->head == NULL) {
         list->head = ln;
@@ -50,7 +50,7 @@ List* appendList(List* list, Value* value) {
     return list;
 }
 
-listnode* makeListNode(Value* value) {
+listnode* makeListNode(Atom* value) {
     listnode* ln = malloc(sizeof(listnode));
     ln->info = value;
     ln->next = NULL;
@@ -88,7 +88,7 @@ List* addMissing(List* dest, List* src) {
     return dest;
 }
 
-Value* getFromList(List* list, int N) {
+Atom* getFromList(List* list, int N) {
     int i = 0;
     listnode* x = list->head;
     while (x != NULL && i < N) {
@@ -98,11 +98,11 @@ Value* getFromList(List* list, int N) {
     return x == NULL ? makeListVal(createList()):x->info;
 }
 
-Value* first(List* list) {
+Atom* first(List* list) {
     return (list == NULL || list->head == NULL) ? makeListVal(createList()):list->head->info;
 }
 
-Value* rest(List* list) {
+Atom* rest(List* list) {
     return makeListVal(copyOmitNth(list, 0));
 }
 

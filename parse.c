@@ -13,10 +13,11 @@ bool shouldSkip(char c) {
 }
 
 bool isSpecialChar(char c) {
-    return (c == '-' ||c == '?' || c == '+' || c == '!' || c == '*' || c == '/' || c == '\'' || c == '&' || c == '%');
+    return (c == '-' || c == '?' || c == '+' || c == '!' || c == '*' ||
+            c == '/' || c == '\'' || c == '&' || c == '%' || c == ':');
 }
 
-Value* parseSymbol(char buff[], int i) {
+Atom* parseSymbol(char buff[], int i) {
     int k = i;
     while (isalpha(buff[k]) || isSpecialChar(buff[k]))
         k++;
@@ -28,7 +29,7 @@ Value* parseSymbol(char buff[], int i) {
     return makeStringVal(makeString(sub, t));
 }
 
-List* addToList(List* addTo, Value* item, bool isquoted) {
+List* addToList(List* addTo, Atom* item, bool isquoted) {
     if (isquoted) {
         List* nl = createList();
         nl = appendList(nl, makeStringVal(makeString("'", 1)));
@@ -38,6 +39,7 @@ List* addToList(List* addTo, Value* item, bool isquoted) {
     addTo = appendList(addTo, item);
     return addTo;
 }
+
 
 int t = 0;
 List* stringToList(char* buff) {
@@ -56,7 +58,7 @@ List* stringToList(char* buff) {
         }
         if (isalpha(buff[i]) || isSpecialChar(buff[i])) {
             int m = i;
-            Value* sym = parseSymbol(buff, i);
+            Atom* sym = parseSymbol(buff, i);
             result = addToList(result, sym, quoted);
             i = m + sym->stringval->len;
         } else if (isdigit(buff[i])) {
@@ -66,7 +68,7 @@ List* stringToList(char* buff) {
             }
             result = addToList(result, makeIntVal(val), quoted);
         } else if (buff[i] == '(') {
-            Value* sym = makeListVal(stringToList(buff+i));
+            Atom* sym = makeListVal(stringToList(buff+i));
             result = addToList(result, sym, quoted);
             i = i+t+1;
         } else if (buff[i] == ')') {

@@ -4,7 +4,7 @@
 #include "list.h"
 
 
-Value* parseSymbol(char buff[], int i);
+Atom* parseSymbol(char buff[], int i);
 List* stringToList(char* buff);
 
 #endif

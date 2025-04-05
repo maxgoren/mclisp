@@ -5,104 +5,104 @@
 #include "list.h"
 #include "eval.h"
 
-Value* primPlus(List* list) {
+Atom* primPlus(List* list) {
     return applyMathPrim('+', list);
 }
 
-Value* primMinus(List* list) {
+Atom* primMinus(List* list) {
     return applyMathPrim('-', list);
 }
 
-Value* primMul(List* list) {
+Atom* primMul(List* list) {
     return applyMathPrim('*', list);
 }
 
-Value* primDiv(List* list) {
+Atom* primDiv(List* list) {
     return applyMathPrim('/', list);
 }
 
-Value* primMod(List* list) {
+Atom* primMod(List* list) {
     return applyMathPrim('%', list);
 }
 
-Value* primCar(List* list) {
+Atom* primCar(List* list) {
     return first(list->head->info->listval);
 }
 
-Value* primCdr(List* list) {
+Atom* primCdr(List* list) {
     return rest(list->head->info->listval);
 }
 
-Value* primEqual(List* list) {
-    Value* lhs = first(list);
-    Value* rhs = first(rest(list)->listval);
+Atom* primEqual(List* list) {
+    Atom* lhs = first(list);
+    Atom* rhs = first(rest(list)->listval);
     return makeBoolVal(compareValue(lhs, rhs));
 }
 
-Value* primLess(List* list) {
-    Value* lhs = first(list);
-    Value* rhs = first(rest(list)->listval);
+Atom* primLess(List* list) {
+    Atom* lhs = first(list);
+    Atom* rhs = first(rest(list)->listval);
     if (lhs->type == AS_NUM && rhs->type == AS_NUM)
         return makeBoolVal(lhs->intval < rhs->intval);
     return makeListVal(createList());
 }
 
-Value* primGreater(List* list) {
-    Value* lhs = first(list);
-    Value* rhs = first(rest(list)->listval);
+Atom* primGreater(List* list) {
+    Atom* lhs = first(list);
+    Atom* rhs = first(rest(list)->listval);
     if (lhs->type == AS_NUM && rhs->type == AS_NUM)
         return makeBoolVal(lhs->intval > rhs->intval);
     return makeListVal(createList());
 }
 
-Value* primLessEq(List* list) {
-    Value* lhs = first(list);
-    Value* rhs = first(rest(list)->listval);
+Atom* primLessEq(List* list) {
+    Atom* lhs = first(list);
+    Atom* rhs = first(rest(list)->listval);
     if (lhs->type == AS_NUM && rhs->type == AS_NUM)
         return makeBoolVal(lhs->intval <= rhs->intval);
     return makeListVal(createList());
 }
 
-Value* primGreaterEq(List* list) {
-    Value* lhs = first(list);
-    Value* rhs = first(rest(list)->listval);
+Atom* primGreaterEq(List* list) {
+    Atom* lhs = first(list);
+    Atom* rhs = first(rest(list)->listval);
     if (lhs->type == AS_NUM && rhs->type == AS_NUM)
         return makeBoolVal(lhs->intval >= rhs->intval);
     return makeListVal(createList());
 }
 
-Value* primPrint(List* list) {
-    Value* info = first(list);
+Atom* primPrint(List* list) {
+    Atom* info = first(list);
     printValue(info); printf("\n");
     return info;
 }
 
-Value* primAnd(List* list) {
-    Value* lhs = first(list);
-    Value* rhs = first(rest(list)->listval);
+Atom* primAnd(List* list) {
+    Atom* lhs = first(list);
+    Atom* rhs = first(rest(list)->listval);
     if (lhs->type == AS_BOOL && rhs->type == AS_BOOL)
         return makeBoolVal(lhs && rhs );
     return makeListVal(createList());
 }
 
-Value* primOr(List* list) {
-    Value* lhs = first(list);
-    Value* rhs = first(rest(list)->listval);
+Atom* primOr(List* list) {
+    Atom* lhs = first(list);
+    Atom* rhs = first(rest(list)->listval);
     if (lhs->type == AS_BOOL && rhs->type == AS_BOOL)
         return makeBoolVal(lhs->intval || rhs->intval);
     return makeListVal(createList());
 }
 
-Value* primNot(List* list) {
-    Value* lhs = first(list);
+Atom* primNot(List* list) {
+    Atom* lhs = first(list);
     if (lhs->type == AS_BOOL)
         return makeBoolVal(!lhs->boolval);
     return makeListVal(createList());
 }
 
-Value* primCons(List* list) {
-    Value* val = first(list);
-    Value* into = list->head->next->info;
+Atom* primCons(List* list) {
+    Atom* val = first(list);
+    Atom* into = list->head->next->info;
 
     List* nl = createList();
     nl->head = makeListNode(val);
@@ -118,9 +118,9 @@ Value* primCons(List* list) {
     return makeListVal(nl);
 }
 
-Value* primAppend(List* list) {
-    Value* pri = list->head->info;
-    Value* sec = list->head->next->info;
+Atom* primAppend(List* list) {
+    Atom* pri = list->head->info;
+    Atom* sec = list->head->next->info;
     if (sec->type != AS_LIST) {
         return makeListVal(createList());
     }
@@ -128,29 +128,29 @@ Value* primAppend(List* list) {
     return sec;
 }
 
-Value* primId(List* list) {
-    Value* item = first(list);
+Atom* primId(List* list) {
+    Atom* item = first(list);
     char *TypeLabels[6] = {"num", "symbol","bool","binding","func", "list"};
     return makeStringVal(makeString(TypeLabels[item->type], strlen(TypeLabels[item->type])));
 }
 
-Value* primMin(List* list) {
+Atom* primMin(List* list) {
     return applyMathPrim('<', list);
 }
 
-Value* primMax(List* list) {
+Atom* primMax(List* list) {
     return applyMathPrim('>', list);
 }
 
-Value* primSymbolicEquality(List* args) {
-    Value* va = first(args);
-    Value* vb = first(rest(args)->listval);
+Atom* primSymbolicEquality(List* args) {
+    Atom* va = first(args);
+    Atom* vb = first(rest(args)->listval);
     if (va->type == AS_SYMBOL && vb->type == AS_SYMBOL)
         return makeBoolVal(compareValue(va, vb));
     return makeListVal(createList());
 }
 
-Value* primList(List* args) {
+Atom* primList(List* args) {
     List* reso = createList();
     List* env = createList();
     for (listnode* it = args->head; it != NULL; it = it->next) {
@@ -159,7 +159,7 @@ Value* primList(List* args) {
     return makeListVal(reso);
 }
 
-Value* primJoin(List* list) {
+Atom* primJoin(List* list) {
     List* reso = createList();
     List* env = createList();
     for (listnode* it = list->head; it != NULL; it = it->next) {
@@ -172,4 +172,14 @@ Value* primJoin(List* list) {
         }
     }
     return makeListVal(reso);
+}
+
+Atom* primApply(List* list) {
+    Atom* func = first(list);
+    Atom* args = first(rest(list)->listval);
+    if (func->type != AS_FUNCTION || args->type != AS_LIST) {
+        printf("Error: Apply Expects a function and a list for arguments.\n");
+        return makeListVal(createList());
+    }
+    return apply(func->funcval, args->listval, createList());
 }

@@ -3,24 +3,24 @@
 #include <stdio.h>
 
 
-Value* sfDefine(List* args, List* env) {
-    Value* label = first(args);
-    Value* value = first(rest(args)->listval);
+Atom* sfDefine(List* args, List* env) {
+    Atom* label = first(args);
+    Atom* value = first(rest(args)->listval);
     String* nstr = makeString(label->stringval->data, label->stringval->len);
     env = envInsert(env, makeBindingVal(makeBinding(makeStringVal(nstr), value)));
     return label;
 }
 
-Value* sfIf(List* args, List* env) {
-    Value* cond = args->head->info;
-    Value* istru = args->head->next->info;
-    Value* isfalse = args->head->next->next->info;
+Atom* sfIf(List* args, List* env) {
+    Atom* cond = args->head->info;
+    Atom* istru = args->head->next->info;
+    Atom* isfalse = args->head->next->next->info;
     if (cond->boolval)
         return eval(istru, env);
     return eval(isfalse, env);
 }
 
-Value* sfLambda(List* args, List* env) {
+Atom* sfLambda(List* args, List* env) {
     Function* func = malloc(sizeof(Function));
     func->type = LAMBDA;
     func->code = first(rest(args)->listval);
@@ -29,7 +29,7 @@ Value* sfLambda(List* args, List* env) {
     return makeFunctionValue(func);
 }
 
-Value* specialLet(List* args, List* env) {
+Atom* specialLet(List* args, List* env) {
     List* vars = first(args)->listval;
     List* body = first(rest(args)->listval)->listval;
     List* vn = createList();
@@ -37,11 +37,8 @@ Value* specialLet(List* args, List* env) {
     for (listnode* it = vars->head; it != NULL; it = it->next) {
         if (it->info->type == AS_LIST) {
             List* asList = it->info->listval;
-            Value* sym = asList->head->info;
-            Value* val = asList->head->next->info;
-            printValue(sym);
-            printValue(val);
-            printf("\n");
+            Atom* sym = asList->head->info;
+            Atom* val = asList->head->next->info;
             vn = appendList(vn, sym);
             vv = appendList(vv, val);
         }
@@ -53,9 +50,9 @@ Value* specialLet(List* args, List* env) {
     return eval(makeListVal(expr), env);
 }
 
-Value* specialSet(List* args, List* env) {
-    Value* sym = first(args);
-    Value* next = first(rest(args)->listval);
+Atom* specialSet(List* args, List* env) {
+    Atom* sym = first(args);
+    Atom* next = first(rest(args)->listval);
     for (listnode* it = env->head; it != NULL; it = it->next) {
         if (compareValue(sym, it->info->bindval->symbol)) {
             it->info->bindval->value = next;
@@ -66,10 +63,10 @@ Value* specialSet(List* args, List* env) {
     return next;
 }
 
-Value* specialCond(List* args, List* env) {
+Atom* specialCond(List* args, List* env) {
     for (listnode* it = args->head; it != NULL; it = it->next) {
-        Value* test = first(it->info->listval);
-        Value* act = first(rest(it->info->listval)->listval);
+        Atom* test = first(it->info->listval);
+        Atom* act = first(rest(it->info->listval)->listval);
         if (test->type == AS_SYMBOL && compareString(makeString("else", 4),test->stringval))
             return eval(act, env); 
         if (eval(test, env)->boolval)
@@ -78,26 +75,26 @@ Value* specialCond(List* args, List* env) {
     return makeListVal(createList());
 }
 
-Value* sfDo(List* args, List* env) {
-    Value* result = makeIntVal(0);
+Atom* sfDo(List* args, List* env) {
+    Atom* result = makeIntVal(0);
     for (listnode* it = args->head; it != NULL; it = it->next) {
         result = eval(it->info, env);
     }
     return result;
 }
 
-Value* sfQuote(List* args, List* env) {
+Atom* sfQuote(List* args, List* env) {
     return first(args);
 }
 
-Value* createSpecialForm(String* name, int numargs, char flags[], Value* (*func)(List*,List*)) {
+Atom* createSpecialForm(String* name, int numargs, char flags[], Atom* (*func)(List*,List*)) {
     SpecialForm* sf = malloc(sizeof(SpecialForm));
     sf->name = name;
     sf->numArgs = numargs;
     for (int i = 0; i < numargs; i++)
         sf->flags[i] = flags[i];
     sf->func = func;
-    Value* vv = malloc(sizeof(Value));
+    Atom* vv = malloc(sizeof(Atom));
     vv->sf = sf;
     vv->type = AS_SF;
     return vv;

@@ -3,8 +3,8 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-enum ValueType {
-    AS_NUM, AS_SYMBOL, AS_BOOL, AS_BINDING, AS_FUNCTION, AS_LIST, AS_SF, AS_ERROR
+enum AtomType {
+    AS_NUM, AS_SYMBOL, AS_BOOL, AS_BINDING, AS_FUNCTION, AS_LIST, AS_CELL, AS_SF, AS_NIL, AS_ERROR
 };
 
 typedef struct List List;
@@ -13,7 +13,7 @@ typedef struct Binding Binding;
 typedef struct String String;
 typedef struct SpecialForm SpecialForm;
 typedef struct {
-    enum ValueType type;
+    enum AtomType type;
     union {
         int intval;
         bool boolval;
@@ -24,11 +24,11 @@ typedef struct {
         SpecialForm* sf;
     };
     int mark;
-} Value;
+} Atom;
 
 
 typedef struct listnode_ {
-    Value* info;
+    Atom* info;
     struct listnode_* next;
 } listnode;
 
@@ -44,8 +44,8 @@ typedef struct String {
 } String;
 
 typedef struct Binding {
-    Value* symbol;
-    Value* value;
+    Atom* symbol;
+    Atom* value;
 } Binding;
 
 enum funcType {
@@ -56,8 +56,8 @@ typedef struct Function {
     enum funcType type;
     List* env;
     List* freeVars;
-    Value* (*func)(List*);
-    Value* code;
+    Atom* (*func)(List*);
+    Atom* code;
 } Function;
 
 #define NO_EVAL  0
@@ -67,43 +67,48 @@ typedef struct SpecialForm {
     String* name;
     int numArgs;
     char flags[3];
-    Value* (*func)(List*, List*);
+    Atom* (*func)(List*, List*);
 } SpecialForm;
 
 typedef struct GC_ {
     List* objList;
 } GC;
 
+
+enum AtomType typeOf(Atom* val);
 List* init(List* env);
-void printValue(Value* val);
-bool compareValue(Value* lhs, Value* rhs);
+void printValue(Atom* val);
+bool compareValue(Atom* lhs, Atom* rhs);
 bool compareString(String* lhs, String* rhs);
 bool compareList(List* lhs, List* rhs);
 bool compareBinding(Binding* lhs, Binding* rhs);
 String* makeString(char* str, int len);
-Binding* makeBinding(Value* symbol, Value* value);
-Value* makeError(String* str);
-Value* makeIntVal(int value);
-Value* makeStringVal(String* val);
-Value* makeListVal(List* list);
-Value* makeBoolVal(bool value);
-Value* makeBindingVal(Binding* binding);
-Value* makeFunctionValue(Function* function);
-Function* makePrimitveFunction(Value* (*func)(List*));
+Binding* makeBinding(Atom* symbol, Atom* value);
+Atom* makeIntVal(int value);
+Atom* makeStringVal(String* val);
+Atom* makeListVal(List* list);
+Atom* makeBoolVal(bool value);
+Atom* makeBindingVal(Binding* binding);
+Atom* makeFunctionValue(Function* function);
+Function* makePrimitveFunction(Atom* (*func)(List*));
 Function* makeLambdaFunction(List* vars, List* code, List* env);
-List* bindSymbolToValue(List*,Binding*);
-List* makePrim(List*,String*,Value* (func)(List*));
-void freeValue(Value* value);
+List* addBindingToEnvironment(List*,Binding*);
+List* createPrimitive(List*,String*,Atom* (func)(List*));
+void freeValue(Atom* value);
 void freeBinding(Binding* binding);
 void freeString(String* str);
-
+bool is_literal(Atom* val);
+bool is_symbol(Atom* val);
+bool is_list(Atom* val);
+bool is_binding(Atom* val);
+bool is_function(Atom* val);
 #define WHITE  0
 #define GREY   1
 
 extern GC* gc;
-
+extern Atom* NIL;
 void initGC();
-void registerObject(GC* gc, Value* val);
+void registerObject(GC* gc, Atom* val);
 List* mark(List* env);
 List* sweep(List* env);
 

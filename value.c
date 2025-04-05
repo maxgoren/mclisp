@@ -7,7 +7,11 @@
 
 GC* collector;
 
-bool compareValue(Value* lhs, Value* rhs) {
+enum AtomType typeOf(Atom* value) {
+    return value != NULL ? value->type:AS_NIL;
+}
+
+bool compareValue(Atom* lhs, Atom* rhs) {
     if (lhs->type != rhs->type)
         return false;
     switch (lhs->type) {
@@ -61,78 +65,66 @@ String* makeString(char* str, int len) {
     return ns;
 }
 
-Value* makeStringVal(String* str) {
-    Value* nv = malloc(sizeof(Value));
+Atom* makeStringVal(String* str) {
+    Atom* nv = malloc(sizeof(Atom));
     nv->type = AS_SYMBOL;
     nv->stringval = str;
     registerObject(collector, nv);
     return nv;
 }
 
-Value* makeError(String* str) {
-    Value* nv = malloc(sizeof(Value));
-    nv->type = AS_ERROR;
-    nv->stringval = str;
-    registerObject(collector, nv);
-    return nv;
+Atom* emptyList() {
+    return makeListVal(createList());
 }
 
-Value* makeError(char* str) {
-    Value* nv = malloc(sizeof(Value));
-    nv->type = AS_ERROR;
-    nv->stringval = makeString(str, strlen(str));
-    registerObject(collector, nv);
-    return nv;
-}
-
-Value* makeIntVal(int value) {
-    Value* nv = malloc(sizeof(Value));
+Atom* makeIntVal(int value) {
+    Atom* nv = malloc(sizeof(Atom));
     nv->intval = value;
     nv->type = AS_NUM;
     registerObject(collector, nv);
     return nv;
 }
 
-Value* makeBoolVal(bool value) {
-    Value* nv = malloc(sizeof(Value));
+Atom* makeBoolVal(bool value) {
+    Atom* nv = malloc(sizeof(Atom));
     nv->boolval = value;
     nv->type = AS_BOOL;
     registerObject(collector, nv);
     return nv;
 }
 
-Value* makeListVal(List* list) {
-    Value* nv = malloc(sizeof(Value));
+Atom* makeListVal(List* list) {
+    Atom* nv = malloc(sizeof(Atom));
     nv->type = AS_LIST;
     nv->listval = list;
     registerObject(collector, nv);
     return nv;
 }
 
-Binding* makeBinding(Value* symbol, Value* value) {
+Binding* makeBinding(Atom* symbol, Atom* value) {
     Binding* binding = malloc(sizeof(Binding));
     binding->symbol = symbol;
     binding->value = value;
     return binding;
 }
 
-Value* makeBindingVal(Binding* bind) {
-    Value* nv = malloc(sizeof(Value));
+Atom* makeBindingVal(Binding* bind) {
+    Atom* nv = malloc(sizeof(Atom));
     nv->type = AS_BINDING;
     nv->bindval = bind;
     registerObject(collector, nv);
     return nv;
 }
 
-Value* makeFunctionValue(Function* function) {
-    Value* nv = malloc(sizeof(Value));
+Atom* makeFunctionValue(Function* function) {
+    Atom* nv = malloc(sizeof(Atom));
     nv->type = AS_FUNCTION;
     nv->funcval = function;
     registerObject(collector, nv);
     return nv;
 }
 
-Function* makePrimitveFunction(Value* (*func)(List*)) {
+Function* makePrimitveFunction(Atom* (*func)(List*)) {
     Function* function = malloc(sizeof(Function));
     function->type = PRIMITIVE;
     function->freeVars = createList();
@@ -150,7 +142,7 @@ Function* makeLambdaFunction(List* args, List* body, List* env) {
     return func;
 }
 
-void printValue(Value* value) {
+void printValue(Atom* value) {
     switch (value->type) {
         case AS_NUM: printf("%d", value->intval); break;
         case AS_SYMBOL: printf("%s", value->stringval->data); break;
@@ -160,11 +152,40 @@ void printValue(Value* value) {
             printf("{ "); printValue(value->bindval->symbol); printf(", "); printValue(value->bindval->value); printf(" }");
         } break;
         case AS_FUNCTION: printf("(lambda)"); break;
+        case AS_NIL: printf("()"); break;
         default: break;
     }
 }
 
-void freeValue(Value* value) {
+bool is_literal(Atom* value) {
+    if (value == NULL)
+        return false;
+    switch (value->type) {
+        case AS_NUM:
+        case AS_BOOL: 
+        case AS_ERROR: return true;
+        default: break;
+    }
+    return false;
+}
+
+bool is_function(Atom* value) {
+    return value == NULL ? false:value->type == AS_FUNCTION;
+}
+
+bool is_binding(Atom* value) {
+    return value == NULL ? false:value->type == AS_BINDING;
+}
+
+bool is_symbol(Atom* value) {
+    return value == NULL ? false:value->type == AS_SYMBOL;
+}
+
+bool is_list(Atom* value) {
+    return value == NULL ? false:value->type == AS_LIST;
+}
+
+void freeValue(Atom* value) {
     if (value == NULL)
         return;
     switch (value->type) {
@@ -209,7 +230,7 @@ void initGC() {
     collector->objList = createList();
 }
 
-void registerObject(GC* gc, Value* val) {
+void registerObject(GC* gc, Atom* val) {
     val->mark = WHITE;
     gc->objList = appendList(gc->objList, val);
 }
@@ -217,9 +238,7 @@ void registerObject(GC* gc, Value* val) {
 List* mark(List* env) {
     if (env == NULL)
         return env;
-    listnode* x;
-    x = env->head;
-    listnode* tx = x;
+    listnode* x = env->head;
     while (x != NULL) {
         //printf("Mark: "); printValue(x->info); printf("\n");
         x->info->mark = GREY;
@@ -233,7 +252,6 @@ List* mark(List* env) {
         }
         x = x->next;
     }
-    env->head = tx;
     return env;
 }
 
@@ -274,13 +292,12 @@ List* sweep(List* env) {
     return env;
 }
 
-List* bindSymbolToValue(List* env, Binding* binding) {
+List* addBindingToEnvironment(List* env, Binding* binding) {
     env = appendList(env, makeBindingVal(binding));
     return env;
 }
 
-List* makePrim(List* env, String* symbol, Value* (func)(List*)) {
-    Binding* binding = makeBinding(makeStringVal(symbol), makeFunctionValue(makePrimitveFunction(func)));
-    env = bindSymbolToValue(env, binding);
+List* createPrimitive(List* env, String* symbol, Atom* (func)(List*)) {
+    env = addBindingToEnvironment(env, makeBinding(makeStringVal(symbol), makeFunctionValue(makePrimitveFunction(func))));
     return env;
 }
