@@ -1,7 +1,7 @@
 #ifndef primitives_h
 #define primitives_h
 #include "list.h"
-#include "value.h"
+#include "atom.h"
 
 //primitive algebra
 Atom* primPlus(List* list);

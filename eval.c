@@ -50,8 +50,7 @@ Atom* envLookUp(List* env, Atom* symbol) {
 int d = 0;
 
 Atom* eval(Atom* value, List* env) {
-    enter("eval("); printValue(value); printf(")\n");
-    leave();
+    enter("eval("); printValue(value); printf(")\n"); leave();
     if (is_literal(value) || is_binding(value) || is_function(value)) return value;
     if (is_symbol(value)) return envLookUp(env, value);
     if (is_list(value)) return listEmpty(value->listval) ? value:evalList(value->listval, env);
@@ -60,7 +59,7 @@ Atom* eval(Atom* value, List* env) {
 
 Atom* evalList(List* list, List* env) {
     enter("evallist("); printList(list); printf(")\n");
-    if (first(list)->type == AS_SYMBOL) {
+    if (is_symbol(first(list))) {
         SpecialForm* sf = findSpecialForm(first(list)->stringval);
         if (sf != NULL) {
             leave();
@@ -73,7 +72,7 @@ Atom* evalList(List* list, List* env) {
         evald = appendList(evald, eval(it->info, env));
     }
     //Apply function
-    if (first(evald)->type == AS_FUNCTION) {
+    if (is_function(first(evald))) {
         leave();
         return apply(first(evald)->funcval, rest(evald)->listval, env);
     }
@@ -114,12 +113,12 @@ List* prepareEnvironment(Function* func, List* args, List* env) {
 
 Atom* apply(Function* func, List* args, List* env) {
     enter("apply("); printList(args); printf(")\n");
-    if (func->type == PRIMITIVE) {
+    if (is_primitive(func)) {
         say("function is a primitive\n");
         leave();
         return func->func(args);
     }
-    if (func->type == LAMBDA) {
+    if (is_lambda(func)) {
         say("function is a lambda\n");
         List* nenv = prepareEnvironment(func, args, env);
         leave();

@@ -1,7 +1,7 @@
 #ifndef eval_h
 #define eval_h
 #include "list.h"
-#include "value.h"
+#include "atom.h"
 
 Atom* applySpecialForm(SpecialForm* sf, List* args, List* env);
 Atom* applyMathPrim(char op, List* args);

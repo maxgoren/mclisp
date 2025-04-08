@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include "primitives.h"
 #include "string.h"
-#include "value.h"
+#include "atom.h"
 #include "list.h"
 #include "eval.h"
 

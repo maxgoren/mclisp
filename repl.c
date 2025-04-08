@@ -3,7 +3,7 @@
 #include "string.h"
 #include <stdlib.h>
 #include "parse.h"
-#include "value.h"
+#include "atom.h"
 #include "list.h"
 #include "eval.h"
 #include "primitives.h"
@@ -19,9 +19,9 @@ char *funcs[NUM_PREDEFS] = {
     "(define empty? (& (x) (eq x () ) ) )",
     "(define count? (& (xs) (if (empty? xs) 0 (+ 1 (count (cdr xs) ) ) ) ) )",
     "(define map (& (f xs) (if (empty? xs) () (cons (f (car xs)) (map f (cdr xs) ) ) ) ) )",
-    "(define filter (& (f xs) (if (empty? xs) () (if (f (car xs)) (cons (car xs) (filter f (cdr xs) ) ) (filter f (cdr xs)) ) )",
+    "(define filter (& (f xs) (if (empty? xs) () (if (f (car xs)) (cons (car xs) (filter f (cdr xs))) (filter f (cdr xs) ) ) ) )",
     "(define nth (& (n xs) (if (eq n 0) (car xs) (nth (- n 1) (cdr xs)) ) ) )",
-    "(define even? (& (n) (eq (% x 2) 0) ) )"
+    "(define even? (& (n) (eq (mod n 2) 0) ) )"
 };
 
 List* init(List* env) {
@@ -33,24 +33,26 @@ List* init(List* env) {
     printf("Loading Primitives...\n");
     env = createPrimitive(env, makeString("id", 2), &primId);
     env = createPrimitive(env, makeString("+", 1), &primPlus);
-    env = createPrimitive(env, makeString("add", 1), &primPlus);
+    env = createPrimitive(env, makeString("add", 3), &primPlus);
     env = createPrimitive(env, makeString("-", 1), &primMinus);
-    env = createPrimitive(env, makeString("sub", 1), &primMinus);
+    env = createPrimitive(env, makeString("sub", 3), &primMinus);
     env = createPrimitive(env, makeString("*", 1), &primMul);
-    env = createPrimitive(env, makeString("mul", 1), &primMul);
+    env = createPrimitive(env, makeString("mul", 3), &primMul);
     env = createPrimitive(env, makeString("/", 1), &primDiv);
-    env = createPrimitive(env, makeString("div", 1), &primDiv);
+    env = createPrimitive(env, makeString("div", 3), &primDiv);
     env = createPrimitive(env, makeString("%", 1), &primMod);
-    env = createPrimitive(env, makeString("mod", 1), &primMod);
+    env = createPrimitive(env, makeString("mod", 3), &primMod);
     env = createPrimitive(env, makeString("car", 3), &primCar);
     env = createPrimitive(env, makeString("cdr", 3), &primCdr);
     env = createPrimitive(env, makeString("cons", 4), &primCons);
     env = createPrimitive(env, makeString("append", 6), &primAppend);
     env = createPrimitive(env, makeString("eq", 2), &primEqual);
     env = createPrimitive(env, makeString("lt", 2), &primLess);
+    env = createPrimitive(env, makeString("<", 1), &primLess);
     env = createPrimitive(env, makeString("gte", 3), &primGreaterEq);
     env = createPrimitive(env, makeString("lte", 3), &primLessEq);
     env = createPrimitive(env, makeString("gt", 2), &primGreater);
+    env = createPrimitive(env, makeString(">", 1), &primGreater);
     env = createPrimitive(env, makeString("say", 3),&primPrint);
     env = createPrimitive(env, makeString("and", 3), &primAnd);
     env = createPrimitive(env, makeString("not", 3),&primNot);

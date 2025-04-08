@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <string.h>
-#include "value.h"
+#include "atom.h"
 #include "list.h"
 #include "primitives.h"
 #include "specialform.h"
@@ -173,6 +173,14 @@ bool is_function(Atom* value) {
     return value == NULL ? false:value->type == AS_FUNCTION;
 }
 
+bool is_primitive(Function* func) {
+    return func == NULL ? false:func->type == PRIMITIVE;
+}
+
+bool is_lambda(Function* func) {
+    return func == NULL ? false:func->type == LAMBDA;
+}
+
 bool is_binding(Atom* value) {
     return value == NULL ? false:value->type == AS_BINDING;
 }
@@ -298,6 +306,7 @@ List* addBindingToEnvironment(List* env, Binding* binding) {
 }
 
 List* createPrimitive(List* env, String* symbol, Atom* (func)(List*)) {
-    env = addBindingToEnvironment(env, makeBinding(makeStringVal(symbol), makeFunctionValue(makePrimitveFunction(func))));
+    env = addBindingToEnvironment(env, makeBinding(makeStringVal(symbol), 
+                                                   makeFunctionValue(makePrimitveFunction(func))));
     return env;
 }

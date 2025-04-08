@@ -97,11 +97,15 @@ List* createPrimitive(List*,String*,Atom* (func)(List*));
 void freeValue(Atom* value);
 void freeBinding(Binding* binding);
 void freeString(String* str);
+
 bool is_literal(Atom* val);
 bool is_symbol(Atom* val);
 bool is_list(Atom* val);
 bool is_binding(Atom* val);
 bool is_function(Atom* val);
+bool is_primitive(Function* func);
+bool is_lambda(Function* func);
+
 #define WHITE  0
 #define GREY   1
 

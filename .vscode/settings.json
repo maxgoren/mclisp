@@ -3,6 +3,8 @@
         "specialform.h": "c",
         "eval.h": "c",
         "ostream": "cpp",
-        "stdio.h": "c"
+        "stdio.h": "c",
+        "list.h": "c",
+        "primitives.h": "c"
     }
 }

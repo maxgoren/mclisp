@@ -2,7 +2,7 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include "parse.h"
-#include "value.h"
+#include "atom.h"
 #include "list.h"
 #include "eval.h"
 #include "primitives.h"

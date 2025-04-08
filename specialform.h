@@ -1,6 +1,6 @@
 #ifndef specialform_h
 #define specialform_h
-#include "value.h"
+#include "atom.h"
 #include "list.h"
 #include "eval.h"
 

@@ -1,6 +1,6 @@
 #ifndef list_h
 #define list_h
-#include "value.h"
+#include "atom.h"
 #include <stdbool.h>
 
 int       listSize(List* list);
