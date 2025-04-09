@@ -4,13 +4,18 @@
 
 int dep = 0;
 Atom* NIL;
+bool trace_eval = false;
 void enter(char* str) {
     dep++;
-    say(str);
+    if (trace_eval) {
+        say(str);
+    }
 }
 void say(char* str) {
-    for (int i = 0; i < dep; i++) printf("  ");
-    printf("%s ", str);
+    if (trace_eval) {
+        for (int i = 0; i < dep; i++) printf("  ");
+        printf("%s ", str);
+    }
 }
 void leave() {
     dep--;
@@ -50,7 +55,9 @@ Atom* envLookUp(List* env, Atom* symbol) {
 int d = 0;
 
 Atom* eval(Atom* value, List* env) {
-    enter("eval("); printValue(value); printf(")\n"); leave();
+    if (trace_eval) {
+        enter("eval("); printValue(value); printf(")\n"); leave();
+    }
     if (is_literal(value) || is_binding(value) || is_function(value)) return value;
     if (is_symbol(value)) return envLookUp(env, value);
     if (is_list(value)) return listEmpty(value->listval) ? value:evalList(value->listval, env);
@@ -58,7 +65,9 @@ Atom* eval(Atom* value, List* env) {
 }
 
 Atom* evalList(List* list, List* env) {
-    enter("evallist("); printList(list); printf(")\n");
+    if (trace_eval) {
+        enter("evallist("); printList(list); printf(")\n");
+    }
     if (is_symbol(first(list))) {
         SpecialForm* sf = findSpecialForm(first(list)->stringval);
         if (sf != NULL) {
@@ -81,7 +90,9 @@ Atom* evalList(List* list, List* env) {
 }
 
 Atom* applySpecialForm(SpecialForm* sf, List* args, List* env) {
-    enter("apply special("); printf("%s ", sf->name->data); printList(args); printf(")\n");
+    if (trace_eval) {
+        enter("apply special("); printf("%s ", sf->name->data); printList(args); printf(")\n");
+    }
     List* evald = createList();
     listnode* it = args->head; 
     int i = 0; 
@@ -112,7 +123,9 @@ List* prepareEnvironment(Function* func, List* args, List* env) {
 }
 
 Atom* apply(Function* func, List* args, List* env) {
-    enter("apply("); printList(args); printf(")\n");
+    if (trace_eval) {
+        enter("apply("); printList(args); printf(")\n");
+    }
     if (is_primitive(func)) {
         say("function is a primitive\n");
         leave();
@@ -130,10 +143,10 @@ Atom* apply(Function* func, List* args, List* env) {
 
 Atom* applyMathPrim(char op, List* list) {
     char msg[255];
-    sprintf(msg, "apply math prim (%c ", op);
-    enter(msg);
-    printList(list);
-    printf("\n");
+    if (trace_eval) {
+        sprintf(msg, "apply math prim (%c ", op);
+        enter(msg); printList(list); printf("\n");
+    }
     int result = first(list)->intval;
     for (listnode* it = rest(list)->listval->head; it != NULL; it = it->next) {
         switch (op) {

@@ -12,6 +12,7 @@ Atom* envLookUp(List* env, Atom* symbol);
 List* envInsert(List* env, Atom* symbol);
 List* makeNewEnvironment(List* vars, List* vals);
 extern int dep;
+extern bool trace_eval;
 void enter(char* str);
 void say(char* str);
 void leave();

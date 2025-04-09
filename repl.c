@@ -91,7 +91,10 @@ void repl() {
     }
 }
 
-int main() {
+int main(int argc, char *argv[]) {
+    if (argc < 2)
+        repl();
+    trace_eval = true;
     repl();
 }
 
