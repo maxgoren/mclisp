@@ -56,13 +56,8 @@ bool compareList(List* lhs, List* rhs) {
 
 String* makeString(char* str, int len) {
     String* ns = malloc(sizeof(String));
-    ns->data = malloc(sizeof(char) * len+1);
-    int i;
-    for (i = 0; str[i] && i <= len; i++) {
-        ns->data[i] = str[i];
-    }
-    ns->data[i] = '\0';
-    ns->len = i;
+    ns->data = strndup(str, len);
+    ns->len = len;
     return ns;
 }
 

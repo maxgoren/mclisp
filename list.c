@@ -57,21 +57,20 @@ listnode* makeListNode(Atom* value) {
     return ln;
 }
 
-List* copyList(List* list) {
-    List* nl = createList();
-    for (listnode* it = list->head; it != NULL; it = it->next)
-        nl = appendList(nl, it->info);
-    return nl;
-}
-
 List* copyOmitNth(List* list, int N) {
     List* nl = createList();
     int i = 0;
     for (listnode* it = list->head; it != NULL; it = it->next) {
-        if (i != N)
+        if (i != N) {
             nl = appendList(nl, it->info);
+        }
         i++;
     }
+    return nl;
+}
+
+List* copyList(List* list) {
+    List* nl = copyOmitNth(list, -1);
     return nl;
 }
 
