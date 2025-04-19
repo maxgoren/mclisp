@@ -20,6 +20,7 @@ bool compareValue(Atom* lhs, Atom* rhs) {
         case AS_BINDING: return compareBinding(lhs->bindval, rhs->bindval);
         case AS_FUNCTION: return false;
         case AS_LIST: return compareList(lhs->listval, rhs->listval);
+        case AS_STRING:
         case AS_SYMBOL: return compareString(lhs->stringval, rhs->stringval);
         default: break;
     };
@@ -65,7 +66,7 @@ String* makeString(char* str, int len) {
     return ns;
 }
 
-Atom* makeStringVal(String* str) {
+Atom* makeSymbolAtom(String* str) {
     Atom* nv = malloc(sizeof(Atom));
     nv->type = AS_SYMBOL;
     nv->stringval = str;
@@ -73,11 +74,19 @@ Atom* makeStringVal(String* str) {
     return nv;
 }
 
-Atom* emptyList() {
-    return makeListVal(createList());
+Atom* makeStringAtom(String* str) {
+    Atom* nv = malloc(sizeof(Atom));
+    nv->type = AS_STRING;
+    nv->stringval = str;
+    registerObject(collector, nv);
+    return nv;
 }
 
-Atom* makeIntVal(int value) {
+Atom* emptyList() {
+    return makeListAtom(createList());
+}
+
+Atom* makeIntAtom(int value) {
     Atom* nv = malloc(sizeof(Atom));
     nv->intval = value;
     nv->type = AS_NUM;
@@ -85,7 +94,7 @@ Atom* makeIntVal(int value) {
     return nv;
 }
 
-Atom* makeBoolVal(bool value) {
+Atom* makeBoolAtom(bool value) {
     Atom* nv = malloc(sizeof(Atom));
     nv->boolval = value;
     nv->type = AS_BOOL;
@@ -93,7 +102,7 @@ Atom* makeBoolVal(bool value) {
     return nv;
 }
 
-Atom* makeListVal(List* list) {
+Atom* makeListAtom(List* list) {
     Atom* nv = malloc(sizeof(Atom));
     nv->type = AS_LIST;
     nv->listval = list;
@@ -108,7 +117,7 @@ Binding* makeBinding(Atom* symbol, Atom* value) {
     return binding;
 }
 
-Atom* makeBindingVal(Binding* bind) {
+Atom* makeBindingAtom(Binding* bind) {
     Atom* nv = malloc(sizeof(Atom));
     nv->type = AS_BINDING;
     nv->bindval = bind;
@@ -116,7 +125,7 @@ Atom* makeBindingVal(Binding* bind) {
     return nv;
 }
 
-Atom* makeFunctionValue(Function* function) {
+Atom* makeFunctionAtom(Function* function) {
     Atom* nv = malloc(sizeof(Atom));
     nv->type = AS_FUNCTION;
     nv->funcval = function;
@@ -136,15 +145,22 @@ Function* makePrimitveFunction(Atom* (*func)(List*)) {
 Function* makeLambdaFunction(List* args, List* body, List* env) {
     Function* func = malloc(sizeof(Function));
     func->type = LAMBDA;
-    func->code = makeListVal(body);
+    func->code = makeListAtom(body);
     func->freeVars = args;
     func->env = env;
     return func;
 }
 
+Atom* makeNil() {
+    Atom* atom = malloc(sizeof(Atom));
+    atom->type = AS_NIL;
+    return atom;
+}
+
 void printValue(Atom* value) {
     switch (value->type) {
         case AS_NUM: printf("%d", value->intval); break;
+        case AS_STRING:
         case AS_SYMBOL: printf("%s", value->stringval->data); break;
         case AS_LIST: printList(value->listval); break;
         case AS_BOOL: printf("%s", value->boolval ? "true":"false"); break;
@@ -161,6 +177,7 @@ bool is_literal(Atom* value) {
     if (value == NULL)
         return false;
     switch (value->type) {
+        case AS_STRING:
         case AS_NUM:
         case AS_BOOL: 
         case AS_ERROR: return true;
@@ -191,6 +208,14 @@ bool is_symbol(Atom* value) {
 
 bool is_list(Atom* value) {
     return value == NULL ? false:value->type == AS_LIST;
+}
+
+bool is_string(Atom* value) {
+    return value == NULL ? false:value->type == AS_STRING;
+}
+
+bool is_nil(Atom* value) {
+    return value == NULL ? true:(value->type == AS_NIL || (value->type == AS_LIST && listEmpty(value->listval)));
 }
 
 void freeValue(Atom* value) {
@@ -301,12 +326,12 @@ List* sweep(List* env) {
 }
 
 List* addBindingToEnvironment(List* env, Binding* binding) {
-    env = appendList(env, makeBindingVal(binding));
+    env = appendList(env, makeBindingAtom(binding));
     return env;
 }
 
 List* createPrimitive(List* env, String* symbol, Atom* (func)(List*)) {
-    env = addBindingToEnvironment(env, makeBinding(makeStringVal(symbol), 
-                                                   makeFunctionValue(makePrimitveFunction(func))));
+    env = addBindingToEnvironment(env, makeBinding(makeSymbolAtom(symbol), 
+                                                   makeFunctionAtom(makePrimitveFunction(func))));
     return env;
 }

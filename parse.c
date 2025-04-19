@@ -7,7 +7,7 @@
 #include "eval.h"
 #include "primitives.h"
 #include "specialform.h"
-
+#include <string.h>
 bool shouldSkip(char c) {
     return c == ' ' || c == '\t' || c == '\r' || c == '\n';
 }
@@ -17,24 +17,48 @@ bool isSpecialChar(char c) {
             c == '/' || c == '\'' || c == '&' || c == '%' || c == ':');
 }
 
-Atom* parseSymbol(char buff[], int i) {
-    int k = i;
+Atom* parseSymbol(char buff[], int* i) {
+    int k = *i;
     while (isalpha(buff[k]) || isSpecialChar(buff[k]))
         k++;
-    char* sub = malloc(sizeof(char)*k+1);
-    int t;
-    for (t = 0; t < k-i; t++)
-        sub[t] = buff[i+t];
-    sub[t] = '\0';
-    return makeStringVal(makeString(sub, t));
+    int len = k - *i;
+    char* sub = strndup(buff+*i, len);
+    *i += len;
+    return makeSymbolAtom(makeString(sub, len));
 }
+
+Atom* parseNumber(char buff[], int* i) {
+    int val = 0;
+    int j = *i;
+    while (isdigit(buff[j])) {
+        val = 10 * val + (buff[j++]-'0');
+    }
+    *i=j;
+    return makeIntAtom(val);
+}
+
+
+Atom* parseString(char buff[], int i) {
+    int k = i+1;
+    while (buff[k] != '\0' && buff[k] != '"')
+        k++;
+    if (buff[k] != '"') {
+        printf("Error: Unterminated string.\n");
+        return makeNil();
+    } else {
+        k++;
+    }
+    char* sub = strndup(buff+i, k-i);
+    return makeStringAtom(makeString(sub, k-i));
+}
+
 
 List* addToList(List* addTo, Atom* item, bool isquoted) {
     if (isquoted) {
         List* nl = createList();
-        nl = appendList(nl, makeStringVal(makeString("'", 1)));
+        nl = appendList(nl, makeSymbolAtom(makeString("'", 1)));
         nl = appendList(nl, item);
-        item = makeListVal(nl);
+        item = makeListAtom(nl);
     }
     addTo = appendList(addTo, item);
     return addTo;
@@ -49,31 +73,26 @@ List* stringToList(char* buff) {
     if (buff[i] == '(') { i++; }
     for (; buff[i];) {
         if (shouldSkip(buff[i])) {
-            i++;
-            continue;
+            i++; continue;
         }
         if (buff[i] == '\'') {
-            quoted = true;
-            i++;
+            quoted = true; i++;
         }
         if (isalpha(buff[i]) || isSpecialChar(buff[i])) {
-            int m = i;
-            Atom* sym = parseSymbol(buff, i);
-            result = addToList(result, sym, quoted);
-            i = m + sym->stringval->len;
+            result = addToList(result, parseSymbol(buff, &i), quoted);
         } else if (isdigit(buff[i])) {
-            int val = 0;
-            while (isdigit(buff[i])) {
-                val = 10 * val + (buff[i++]-'0');
-            }
-            result = addToList(result, makeIntVal(val), quoted);
+            result = addToList(result, parseNumber(buff, &i), quoted);
         } else if (buff[i] == '(') {
-            Atom* sym = makeListVal(stringToList(buff+i));
-            result = addToList(result, sym, quoted);
+            result = addToList(result, makeListAtom(stringToList(buff+i)), quoted);
             i = i+t+1;
         } else if (buff[i] == ')') {
             t = i;
             return result;
+        } else if (buff[i] == '"') {
+            int m = i;
+            Atom* sym = parseString(buff, i);
+            result = addToList(result, sym, quoted);
+            i = m + sym->stringval->len;
         }
         quoted = false;
     }

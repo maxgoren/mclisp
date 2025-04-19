@@ -7,7 +7,7 @@ Atom* sfDefine(List* args, List* env) {
     Atom* label = first(args);
     Atom* value = first(rest(args)->listval);
     String* nstr = makeString(label->stringval->data, label->stringval->len);
-    env = envInsert(env, makeBindingVal(makeBinding(makeStringVal(nstr), value)));
+    env = envInsert(env, makeBindingAtom(makeBinding(makeSymbolAtom(nstr), value)));
     return label;
 }
 
@@ -26,7 +26,7 @@ Atom* sfLambda(List* args, List* env) {
     func->code = first(rest(args)->listval);
     func->freeVars = first(args)->listval;
     func->env = env;
-    return makeFunctionValue(func);
+    return makeFunctionAtom(func);
 }
 
 Atom* specialLet(List* args, List* env) {
@@ -45,9 +45,9 @@ Atom* specialLet(List* args, List* env) {
     }
     Function* func = makeLambdaFunction(vn, body, env);
     List* expr = createList();
-    expr = appendList(expr, makeFunctionValue(func));
+    expr = appendList(expr, makeFunctionAtom(func));
     expr = addMissing(expr, vv);
-    return eval(makeListVal(expr), env);
+    return eval(makeListAtom(expr), env);
 }
 
 Atom* specialSet(List* args, List* env) {
@@ -59,7 +59,7 @@ Atom* specialSet(List* args, List* env) {
             return next;
         }
     }
-    env = appendList(env, makeBindingVal(makeBinding(sym, next)));
+    env = appendList(env, makeBindingAtom(makeBinding(sym, next)));
     return next;
 }
 
@@ -72,11 +72,11 @@ Atom* specialCond(List* args, List* env) {
         if (eval(test, env)->boolval)
             return eval(act, env);
     }
-    return makeListVal(createList());
+    return makeListAtom(createList());
 }
 
 Atom* sfDo(List* args, List* env) {
-    Atom* result = makeIntVal(0);
+    Atom* result = makeIntAtom(0);
     for (listnode* it = args->head; it != NULL; it = it->next) {
         result = eval(it->info, env);
     }

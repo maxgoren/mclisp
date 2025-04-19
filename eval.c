@@ -26,7 +26,7 @@ List* makeNewEnvironment(List* vars, List* vals) {
     listnode* var = vars->head;
     listnode* val = vals->head;
     while (var != NULL && val != NULL) {
-        nenv = appendList(nenv, makeBindingVal(makeBinding(var->info, val->info)));
+        nenv = appendList(nenv, makeBindingAtom(makeBinding(var->info, val->info)));
         var = var->next;
         val = val->next;
     }
@@ -86,7 +86,7 @@ Atom* evalList(List* list, List* env) {
         return apply(first(evald)->funcval, rest(evald)->listval, env);
     }
     leave();
-    return makeListVal(evald);
+    return makeListAtom(evald);
 }
 
 Atom* applySpecialForm(SpecialForm* sf, List* args, List* env) {
@@ -156,14 +156,14 @@ Atom* applyMathPrim(char op, List* list) {
             case '/': { 
                 if (it->info->intval == 0) {
                     leave();
-                    return makeIntVal(0);
+                    return makeIntAtom(0);
                 }
                 result /= it->info->intval; 
             } break;
             case '%': {
                 if (it->info->intval == 0) {
                     leave();
-                    return makeIntVal(0);
+                    return makeIntAtom(0);
                 }
                 result = result % it->info->intval; 
             } break;
@@ -173,6 +173,6 @@ Atom* applyMathPrim(char op, List* list) {
         }
     }
     leave();
-    return makeIntVal(result);
+    return makeIntAtom(result);
 }
 

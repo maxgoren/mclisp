@@ -5,6 +5,7 @@
         "ostream": "cpp",
         "stdio.h": "c",
         "list.h": "c",
-        "primitives.h": "c"
+        "primitives.h": "c",
+        "new": "cpp"
     }
 }

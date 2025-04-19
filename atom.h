@@ -4,7 +4,8 @@
 #include <stdlib.h>
 
 enum AtomType {
-    AS_NUM, AS_SYMBOL, AS_BOOL, AS_BINDING, AS_FUNCTION, AS_LIST, AS_CELL, AS_SF, AS_NIL, AS_ERROR
+    AS_NUM, AS_SYMBOL, AS_BOOL, AS_BINDING, AS_FUNCTION, AS_LIST, 
+    AS_CELL, AS_SF, AS_NIL, AS_ERROR, AS_STRING
 };
 
 typedef struct List List;
@@ -84,12 +85,14 @@ bool compareList(List* lhs, List* rhs);
 bool compareBinding(Binding* lhs, Binding* rhs);
 String* makeString(char* str, int len);
 Binding* makeBinding(Atom* symbol, Atom* value);
-Atom* makeIntVal(int value);
-Atom* makeStringVal(String* val);
-Atom* makeListVal(List* list);
-Atom* makeBoolVal(bool value);
-Atom* makeBindingVal(Binding* binding);
-Atom* makeFunctionValue(Function* function);
+Atom* makeIntAtom(int value);
+Atom* makeSymbolAtom(String* val);
+Atom* makeStringAtom(String* val);
+Atom* makeListAtom(List* list);
+Atom* makeBoolAtom(bool value);
+Atom* makeBindingAtom(Binding* binding);
+Atom* makeFunctionAtom(Function* function);
+Atom* makeNil();
 Function* makePrimitveFunction(Atom* (*func)(List*));
 Function* makeLambdaFunction(List* vars, List* code, List* env);
 List* addBindingToEnvironment(List*,Binding*);

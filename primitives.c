@@ -36,39 +36,39 @@ Atom* primCdr(List* list) {
 Atom* primEqual(List* list) {
     Atom* lhs = first(list);
     Atom* rhs = first(rest(list)->listval);
-    return makeBoolVal(compareValue(lhs, rhs));
+    return makeBoolAtom(compareValue(lhs, rhs));
 }
 
 Atom* primLess(List* list) {
     Atom* lhs = first(list);
     Atom* rhs = first(rest(list)->listval);
     if (lhs->type == AS_NUM && rhs->type == AS_NUM)
-        return makeBoolVal(lhs->intval < rhs->intval);
-    return makeListVal(createList());
+        return makeBoolAtom(lhs->intval < rhs->intval);
+    return makeListAtom(createList());
 }
 
 Atom* primGreater(List* list) {
     Atom* lhs = first(list);
     Atom* rhs = first(rest(list)->listval);
     if (lhs->type == AS_NUM && rhs->type == AS_NUM)
-        return makeBoolVal(lhs->intval > rhs->intval);
-    return makeListVal(createList());
+        return makeBoolAtom(lhs->intval > rhs->intval);
+    return makeListAtom(createList());
 }
 
 Atom* primLessEq(List* list) {
     Atom* lhs = first(list);
     Atom* rhs = first(rest(list)->listval);
     if (lhs->type == AS_NUM && rhs->type == AS_NUM)
-        return makeBoolVal(lhs->intval <= rhs->intval);
-    return makeListVal(createList());
+        return makeBoolAtom(lhs->intval <= rhs->intval);
+    return makeListAtom(createList());
 }
 
 Atom* primGreaterEq(List* list) {
     Atom* lhs = first(list);
     Atom* rhs = first(rest(list)->listval);
     if (lhs->type == AS_NUM && rhs->type == AS_NUM)
-        return makeBoolVal(lhs->intval >= rhs->intval);
-    return makeListVal(createList());
+        return makeBoolAtom(lhs->intval >= rhs->intval);
+    return makeListAtom(createList());
 }
 
 Atom* primPrint(List* list) {
@@ -81,23 +81,23 @@ Atom* primAnd(List* list) {
     Atom* lhs = first(list);
     Atom* rhs = first(rest(list)->listval);
     if (lhs->type == AS_BOOL && rhs->type == AS_BOOL)
-        return makeBoolVal(lhs && rhs );
-    return makeListVal(createList());
+        return makeBoolAtom(lhs && rhs );
+    return makeListAtom(createList());
 }
 
 Atom* primOr(List* list) {
     Atom* lhs = first(list);
     Atom* rhs = first(rest(list)->listval);
     if (lhs->type == AS_BOOL && rhs->type == AS_BOOL)
-        return makeBoolVal(lhs->intval || rhs->intval);
-    return makeListVal(createList());
+        return makeBoolAtom(lhs->intval || rhs->intval);
+    return makeListAtom(createList());
 }
 
 Atom* primNot(List* list) {
     Atom* lhs = first(list);
     if (lhs->type == AS_BOOL)
-        return makeBoolVal(!lhs->boolval);
-    return makeListVal(createList());
+        return makeBoolAtom(!lhs->boolval);
+    return makeListAtom(createList());
 }
 
 Atom* primCons(List* list) {
@@ -115,14 +115,14 @@ Atom* primCons(List* list) {
         nl->tail = nl->head->next;
         nl->count = 2;
     }
-    return makeListVal(nl);
+    return makeListAtom(nl);
 }
 
 Atom* primAppend(List* list) {
     Atom* pri = list->head->info;
     Atom* sec = list->head->next->info;
     if (sec->type != AS_LIST) {
-        return makeListVal(createList());
+        return makeListAtom(createList());
     }
     sec->listval = appendList(sec->listval, pri);
     return sec;
@@ -131,7 +131,7 @@ Atom* primAppend(List* list) {
 Atom* primId(List* list) {
     Atom* item = first(list);
     char *TypeLabels[6] = {"num", "symbol","bool","binding","func", "list"};
-    return makeStringVal(makeString(TypeLabels[item->type], strlen(TypeLabels[item->type])));
+    return makeSymbolAtom(makeString(TypeLabels[item->type], strlen(TypeLabels[item->type])));
 }
 
 Atom* primMin(List* list) {
@@ -146,8 +146,8 @@ Atom* primSymbolicEquality(List* args) {
     Atom* va = first(args);
     Atom* vb = first(rest(args)->listval);
     if (va->type == AS_SYMBOL && vb->type == AS_SYMBOL)
-        return makeBoolVal(compareValue(va, vb));
-    return makeListVal(createList());
+        return makeBoolAtom(compareValue(va, vb));
+    return makeListAtom(createList());
 }
 
 Atom* primList(List* args) {
@@ -156,9 +156,10 @@ Atom* primList(List* args) {
     for (listnode* it = args->head; it != NULL; it = it->next) {
         reso = appendList(reso, it->info);
     }
-    return makeListVal(reso);
+    return makeListAtom(reso);
 }
 
+//This flattens lists as it joins them
 Atom* primJoin(List* list) {
     List* reso = createList();
     List* env = createList();
@@ -171,7 +172,7 @@ Atom* primJoin(List* list) {
             reso = appendList(reso, it->info);
         }
     }
-    return makeListVal(reso);
+    return makeListAtom(reso);
 }
 
 Atom* primApply(List* list) {
@@ -179,7 +180,7 @@ Atom* primApply(List* list) {
     Atom* args = first(rest(list)->listval);
     if (func->type != AS_FUNCTION || args->type != AS_LIST) {
         printf("Error: Apply Expects a function and a list for arguments.\n");
-        return makeListVal(createList());
+        return makeListAtom(createList());
     }
     return apply(func->funcval, args->listval, createList());
 }

@@ -17,7 +17,7 @@
 
 char *funcs[NUM_PREDEFS] = {
     "(define empty? (& (x) (eq x () ) ) )",
-    "(define count? (& (xs) (if (empty? xs) 0 (+ 1 (count (cdr xs) ) ) ) ) )",
+    "(define count? (& (xs) (if (empty? xs) 0 (+ 1 (count? (cdr xs) ) ) ) ) )",
     "(define map (& (f xs) (if (empty? xs) () (cons (f (car xs)) (map f (cdr xs) ) ) ) ) )",
     "(define filter (& (f xs) (if (empty? xs) () (if (f (car xs)) (cons (car xs) (filter f (cdr xs))) (filter f (cdr xs) ) ) ) )",
     "(define nth (& (n xs) (if (eq n 0) (car xs) (nth (- n 1) (cdr xs)) ) ) )",
@@ -27,7 +27,7 @@ char *funcs[NUM_PREDEFS] = {
 List* init(List* env) {
     printf("Initalizing mgclisp...\n");
     initGC();
-    NIL = makeListVal(createList());
+    NIL = makeListAtom(createList());
     printf("GC Initialized...\n");
     initSpecialForms();
     printf("Loading Primitives...\n");
@@ -47,6 +47,8 @@ List* init(List* env) {
     env = createPrimitive(env, makeString("cons", 4), &primCons);
     env = createPrimitive(env, makeString("append", 6), &primAppend);
     env = createPrimitive(env, makeString("eq", 2), &primEqual);
+    env = createPrimitive(env, makeString("eq?", 3), &primEqual);
+    env = createPrimitive(env, makeString("=", 1), &primEqual);
     env = createPrimitive(env, makeString("lt", 2), &primLess);
     env = createPrimitive(env, makeString("<", 1), &primLess);
     env = createPrimitive(env, makeString("gte", 3), &primGreaterEq);
@@ -64,8 +66,8 @@ List* init(List* env) {
     env = createPrimitive(env, makeString("join", 4), &primJoin);
     env = createPrimitive(env, makeString("apply", 5), &primApply);
     printf("Initializing Standard Library..");
-    for (int i = 0; i < NUM_PREDEFS; i++)
-        eval(makeListVal(stringToList(funcs[i])), env);
+    for (int i = 0; i < NUM_PREDEFS; i++) 
+        eval(makeListAtom(stringToList(funcs[i])), env);
     printf("MGCLisp Loaded Successfully.\n");
     return env;
 }
@@ -78,23 +80,32 @@ void repl() {
     for (;;) {
         printf("misp(%d)> ", ecnt++);
         fgets(buff, sizeof(buff), stdin);
-        if (strcmp(buff, "quit") == 0)
-            return;
-        List* asList = stringToList(buff);
-        printList(asList);
-        printf("\n => ");
-        printValue(eval(makeListVal(asList), env));
-        printf("\n");
-        env = mark(env);
-        env = sweep(env);
+        if (buff[0] == '.') {
+            switch (buff[1]) {
+                case 'q': return;
+                case 't': trace_eval = !trace_eval; break;
+                default: break;
+            }
+        } else {
+            List* asList = stringToList(buff);
+            printList(asList);
+            printf("\n => ");
+            printValue(eval(makeListAtom(asList), env));
+            printf("\n");
+            env = mark(env);
+            env = sweep(env);
+        }
         memset(buff, '\0', sizeof(buff));
     }
 }
 
 int main(int argc, char *argv[]) {
-    if (argc < 2)
+    if (argc < 2) {
         repl();
-    trace_eval = true;
-    repl();
+    } else {
+        trace_eval = true;
+        repl();
+    }
+    return 0;
 }
 

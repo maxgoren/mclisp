@@ -8,7 +8,7 @@ int listSize(List* list) {
 }
 
 bool listEmpty(List* list) {
-    return list != NULL && list->head == NULL;
+    return (list != NULL && list->head == NULL) || list == NULL;
 }
 
 int findList(List* list, Atom* value) {
@@ -95,15 +95,15 @@ Atom* getFromList(List* list, int N) {
         x = x->next;
         i++;
     }
-    return x == NULL ? makeListVal(createList()):x->info;
+    return x == NULL ? makeListAtom(createList()):x->info;
 }
 
 Atom* first(List* list) {
-    return (list == NULL || list->head == NULL) ? makeListVal(createList()):list->head->info;
+    return (list == NULL || list->head == NULL) ? makeListAtom(createList()):list->head->info;
 }
 
 Atom* rest(List* list) {
-    return makeListVal(copyOmitNth(list, 0));
+    return makeListAtom(copyOmitNth(list, 0));
 }
 
 void printList(List* list) {
