@@ -2,13 +2,34 @@
 #include "list.h"
 #include <stdio.h>
 
+/*
 
+(define <label> <value>)
+
+(define (func x y) (+ x y)) -> (define func (lambda (x y) (+ x y)))
+if (typeof first (list))
+
+else
+*/
 Atom* sfDefine(List* args, List* env) {
-    Atom* label = first(args);
-    Atom* value = first(rest(args)->listval);
-    String* nstr = makeString(label->stringval->data, label->stringval->len);
-    env = envInsert(env, makeBindingAtom(makeBinding(makeSymbolAtom(nstr), value)));
-    return label;
+    Atom* oprndA = first(args);
+    Atom* oprndB = first(rest(args)->listval);
+    String* nstr = NULL;
+    if (typeOf(oprndA) == AS_LIST) {
+        nstr = makeString(first(oprndA->listval)->stringval->data, first(oprndA->listval)->stringval->len);
+        printf("%s\n", nstr->data);
+        List* fargs = rest(oprndA->listval)->listval;
+        printf("args: "); printList(fargs);  
+        printValue(rest(args));
+        List* body = oprndB->listval;
+        printf("\n body: "); printList(body);
+        Function* func = makeLambdaFunction(fargs, body, env);
+        env = envInsert(env, makeBindingAtom(makeBinding(makeSymbolAtom(nstr), makeFunctionAtom(func))));
+    } else {
+        nstr = makeString(oprndA->stringval->data, oprndA->stringval->len);
+        env = envInsert(env, makeBindingAtom(makeBinding(makeSymbolAtom(nstr), eval(oprndB, env))));
+    }
+    return makeStringAtom(nstr);
 }
 
 Atom* sfIf(List* args, List* env) {
@@ -119,8 +140,8 @@ void initSpecialForms() {
     specialForms = appendList(specialForms, createSpecialForm(makeString("quote", 1), 0, flags, &sfQuote));
     specialForms = appendList(specialForms, createSpecialForm(makeString("cond",4), 0, flags, &specialCond));
     specialForms = appendList(specialForms, createSpecialForm(makeString("do",2), 0, flags, &sfDo));
-    setFlags(flags, NO_EVAL, EVAL, NO_EVAL);
     specialForms = appendList(specialForms, createSpecialForm(makeString("define", 6), 2, flags, &sfDefine));
+    setFlags(flags, NO_EVAL, EVAL, NO_EVAL);
     specialForms = appendList(specialForms, createSpecialForm(makeString("set!",3), 2, flags, &specialSet));
     setFlags(flags, EVAL, NO_EVAL, NO_EVAL);
     specialForms = appendList(specialForms, createSpecialForm(makeString("if", 2), 3, flags, &sfIf));

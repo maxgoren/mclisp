@@ -8,6 +8,7 @@
 #include "primitives.h"
 #include "specialform.h"
 #include <string.h>
+
 bool shouldSkip(char c) {
     return c == ' ' || c == '\t' || c == '\r' || c == '\n';
 }
@@ -28,8 +29,7 @@ Atom* parseSymbol(char buff[], int* i) {
 }
 
 Atom* parseNumber(char buff[], int* i) {
-    int val = 0;
-    int j = *i;
+    int val = 0, j = *i;
     while (isdigit(buff[j])) {
         val = 10 * val + (buff[j++]-'0');
     }
@@ -38,8 +38,8 @@ Atom* parseNumber(char buff[], int* i) {
 }
 
 
-Atom* parseString(char buff[], int i) {
-    int k = i+1;
+Atom* parseString(char buff[], int* i) {
+    int k = *i+1, len = 0;;
     while (buff[k] != '\0' && buff[k] != '"')
         k++;
     if (buff[k] != '"') {
@@ -48,10 +48,11 @@ Atom* parseString(char buff[], int i) {
     } else {
         k++;
     }
-    char* sub = strndup(buff+i, k-i);
-    return makeStringAtom(makeString(sub, k-i));
+    len = k-*i;
+    char* sub = strndup(buff+*i, len);
+    *i += len;
+    return makeStringAtom(makeString(sub, len));
 }
-
 
 List* addToList(List* addTo, Atom* item, bool isquoted) {
     if (isquoted) {
@@ -82,17 +83,14 @@ List* stringToList(char* buff) {
             result = addToList(result, parseSymbol(buff, &i), quoted);
         } else if (isdigit(buff[i])) {
             result = addToList(result, parseNumber(buff, &i), quoted);
+        } else if (buff[i] == '"') {
+            result = addToList(result, parseString(buff, &i), quoted);
         } else if (buff[i] == '(') {
             result = addToList(result, makeListAtom(stringToList(buff+i)), quoted);
             i = i+t+1;
         } else if (buff[i] == ')') {
             t = i;
             return result;
-        } else if (buff[i] == '"') {
-            int m = i;
-            Atom* sym = parseString(buff, i);
-            result = addToList(result, sym, quoted);
-            i = m + sym->stringval->len;
         }
         quoted = false;
     }

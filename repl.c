@@ -11,7 +11,8 @@
 /*
     (define fib (& (x) (do (define fib-iter (& (curr prev cnt max) (if (eq cnt max) (say curr) (fib-iter (+ prev curr) curr (+ cnt 1) max)))) (fib-iter 1 1 1 x))))
     (define fact (& (x) (do (define fact-iter (& (prod cnt max) (if (eq cnt max) (* prod cnt) (fact-iter (* prod cnt) (+ 1 cnt) max)))) (fact-iter 1 1 x))))
-    
+    (define MUL (& (m n) (if (eq n 0) 0 (+ m (MUL m (- n 1))))))
+
 */    
 #define NUM_PREDEFS 6
 
