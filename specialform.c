@@ -17,12 +17,8 @@ Atom* sfDefine(List* args, List* env) {
     String* nstr = NULL;
     if (typeOf(oprndA) == AS_LIST) {
         nstr = makeString(first(oprndA->listval)->stringval->data, first(oprndA->listval)->stringval->len);
-        printf("%s\n", nstr->data);
         List* fargs = rest(oprndA->listval)->listval;
-        printf("args: "); printList(fargs);  
-        printValue(rest(args));
         List* body = oprndB->listval;
-        printf("\n body: "); printList(body);
         Function* func = makeLambdaFunction(fargs, body, env);
         env = envInsert(env, makeBindingAtom(makeBinding(makeSymbolAtom(nstr), makeFunctionAtom(func))));
     } else {
