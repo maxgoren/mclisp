@@ -1,7 +1,8 @@
-#ifndef eval_h
-#define eval_h
-#include "list.h"
-#include "atom.h"
+#include <stdio.h>
+#include <ctype.h>
+#include <string.h>
+#include <stdlib.h>
+#include "mgclisp.h"  
 
 /*
     MIT License
@@ -30,18 +31,14 @@
 
 */
 
-Atom* applySpecialForm(SpecialForm* sf, List* args, List* env);
-Atom* applyMathPrim(char op, List* args);
-Atom* apply(Function* func, List* args, List* env);
-Atom* eval(Atom* val, List* env);
-Atom* evalList(List* list, List* env);
-Atom* envLookUp(List* env, Atom* symbol);
-List* envInsert(List* env, Atom* symbol);
-List* makeNewEnvironment(List* vars, List* vals);
-extern int dep;
-extern bool trace_eval;
-void enter(char* str);
-void say(char* str);
-void leave();
+int main(int argc, char *argv[]) {
+    if (argc < 2) {
+        repl();
+    } else {
+        trace_eval = true;
+        traceGC = true;
+        repl();
+    }
+    return 0;
+}
 
-#endif

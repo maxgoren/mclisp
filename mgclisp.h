@@ -1,7 +1,16 @@
-#ifndef eval_h
-#define eval_h
-#include "list.h"
+#ifndef mgclisp_h
+#define mgclisp_h
+#include <stdio.h>
+#include <ctype.h>
+#include <string.h>
+#include <stdlib.h>
+#include "parse.h"
 #include "atom.h"
+#include "list.h"
+#include "eval.h"
+#include "primitives.h"
+#include "specialform.h"
+#define NUM_PREDEFS 8
 
 /*
     MIT License
@@ -30,18 +39,10 @@
 
 */
 
-Atom* applySpecialForm(SpecialForm* sf, List* args, List* env);
-Atom* applyMathPrim(char op, List* args);
-Atom* apply(Function* func, List* args, List* env);
-Atom* eval(Atom* val, List* env);
-Atom* evalList(List* list, List* env);
-Atom* envLookUp(List* env, Atom* symbol);
-List* envInsert(List* env, Atom* symbol);
-List* makeNewEnvironment(List* vars, List* vals);
-extern int dep;
-extern bool trace_eval;
-void enter(char* str);
-void say(char* str);
-void leave();
+extern char* funcs[NUM_PREDEFS];
+extern List* env;
+List* init(List*);
+void repl();
+
 
 #endif

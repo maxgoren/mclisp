@@ -1,28 +1,21 @@
-#include <stdio.h>
-#include <ctype.h>
-#include "string.h"
-#include <stdlib.h>
-#include "parse.h"
-#include "atom.h"
-#include "list.h"
-#include "eval.h"
-#include "primitives.h"
-#include "specialform.h"
+#include "mgclisp.h"
+
 /*
     (define fib (& (x) (do (define fib-iter (& (curr prev cnt max) (if (eq cnt max) (say curr) (fib-iter (+ prev curr) curr (+ cnt 1) max)))) (fib-iter 1 1 1 x))))
     (define fact (& (x) (do (define fact-iter (& (prod cnt max) (if (eq cnt max) (* prod cnt) (fact-iter (* prod cnt) (+ 1 cnt) max)))) (fact-iter 1 1 x))))
     (define MUL (& (m n) (if (eq n 0) 0 (+ m (MUL m (- n 1))))))
 
-*/    
-#define NUM_PREDEFS 6
-
+*/  
+ 
 char *funcs[NUM_PREDEFS] = {
     "(define empty? (& (x) (eq x () ) ) )",
     "(define count? (& (xs) (if (empty? xs) 0 (+ 1 (count? (cdr xs) ) ) ) ) )",
     "(define map (& (f xs) (if (empty? xs) () (cons (f (car xs)) (map f (cdr xs) ) ) ) ) )",
     "(define filter (& (f xs) (if (empty? xs) () (if (f (car xs)) (cons (car xs) (filter f (cdr xs))) (filter f (cdr xs) ) ) ) )",
     "(define nth (& (n xs) (if (eq n 0) (car xs) (nth (- n 1) (cdr xs)) ) ) )",
-    "(define even? (& (n) (eq (mod n 2) 0) ) )"
+    "(define even? (& (n) (eq (mod n 2) 0) ) )",
+    "(define (delay exp) (lambda () (exp)))",
+    "(define (force exp) (exp))"
 };
 
 List* init(List* env) {
@@ -89,8 +82,7 @@ void repl() {
             }
         } else {
             List* asList = stringToList(buff);
-            printList(asList);
-            printf("\n => ");
+            printf(" => ");
             printValue(eval(makeListAtom(asList), env));
             printf("\n");
             env = mark(env);
@@ -99,14 +91,3 @@ void repl() {
         memset(buff, '\0', sizeof(buff));
     }
 }
-
-int main(int argc, char *argv[]) {
-    if (argc < 2) {
-        repl();
-    } else {
-        trace_eval = true;
-        repl();
-    }
-    return 0;
-}
-

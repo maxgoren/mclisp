@@ -21,6 +21,11 @@ void leave() {
     dep--;
 }
 
+Atom* error(char *str) {
+    printf("!! Error: %s\n", str);
+    return makeNil();
+}
+
 List* makeNewEnvironment(List* vars, List* vals) {
     List* nenv = createList();
     listnode* var = vars->head;
@@ -56,23 +61,25 @@ int d = 0;
 
 Atom* eval(Atom* value, List* env) {
     if (trace_eval) {
-        enter("eval("); printValue(value); printf(")\n"); leave();
+        enter("eval("); printValue(value); printf(")\n");
     }
-    if (is_literal(value) || is_binding(value) || is_function(value)) return value;
-    if (is_symbol(value)) return envLookUp(env, value);
-    if (is_list(value)) return listEmpty(value->listval) ? value:evalList(value->listval, env);
-    return NIL;
+    if (is_literal(value) || is_binding(value) || is_function(value)) { leave(); return value; }
+    if (is_symbol(value)) { leave(); return envLookUp(env, value); }
+    Atom* retval = makeNil();
+    if (is_list(value)) {
+        leave();
+        return evalList(value->listval, env);
+    }
+    return makeNil();
 }
 
 Atom* evalList(List* list, List* env) {
-    if (trace_eval) {
-        enter("evallist("); printList(list); printf(")\n");
-    }
+    if (listEmpty(list))
+        return makeListAtom(list);
     if (is_symbol(first(list))) {
         SpecialForm* sf = findSpecialForm(first(list)->stringval);
         if (sf != NULL) {
-            leave();
-            return applySpecialForm( sf, rest(list)->listval, env);
+            return applySpecialForm(sf, rest(list)->listval, env);
         }
     }
     //Evalute Arguments
@@ -82,10 +89,8 @@ Atom* evalList(List* list, List* env) {
     }
     //Apply function
     if (is_function(first(evald))) {
-        leave();
         return apply(first(evald)->funcval, rest(evald)->listval, env);
     }
-    leave();
     return makeListAtom(evald);
 }
 
@@ -148,6 +153,10 @@ Atom* applyMathPrim(char op, List* list) {
         enter(msg); printList(list); printf("\n");
     }
     int result = first(list)->intval;
+    if (list->count == 1 && op == '-')
+        return makeIntAtom(-result);
+    else if (list->count == 1 && op == '+')
+        return makeIntAtom(+result);
     for (listnode* it = rest(list)->listval->head; it != NULL; it = it->next) {
         switch (op) {
             case '+': { result += it->info->intval; } break;
@@ -156,14 +165,14 @@ Atom* applyMathPrim(char op, List* list) {
             case '/': { 
                 if (it->info->intval == 0) {
                     leave();
-                    return makeIntAtom(0);
+                    return error("!! ERROR: Divide by zero? Really!?");
                 }
                 result /= it->info->intval; 
             } break;
             case '%': {
                 if (it->info->intval == 0) {
                     leave();
-                    return makeIntAtom(0);
+                    return error("!! ERROR: Divide by zero? Really!?");
                 }
                 result = result % it->info->intval; 
             } break;

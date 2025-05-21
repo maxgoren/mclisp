@@ -268,7 +268,9 @@ List* mark(List* env) {
         return env;
     listnode* x = env->head;
     while (x != NULL) {
-        //printf("Mark: "); printValue(x->info); printf("\n");
+        if (traceGC) {
+            printf("Mark: "); printValue(x->info); printf("\n");
+        }
         x->info->mark = GREY;
         if (x->info->type == AS_BINDING) {
             x->info->bindval->symbol->mark = GREY;
@@ -283,22 +285,26 @@ List* mark(List* env) {
     return env;
 }
 
+bool traceGC = false;
+
 List* sweep(List* env) {
     listnode* x = collector->objList->head;
     listnode* p = x; x = x->next;
     int frc = 0, nw = 0;
     while (x != NULL) {
         if (x->info->mark != GREY) {
-            /*switch (x->info->type) {
-                case AS_NUM:     printf("num:      "); break;
-                case AS_BOOL:    printf("bool:     "); break;
-                case AS_BINDING: printf("binding:  "); break;
-                case AS_LIST:    printf("List:     "); break;
-                case AS_SYMBOL:  printf("symbol:   "); break;
-                case AS_FUNCTION:printf("function: "); break;
+            if (traceGC) {
+                switch (x->info->type) {
+                    case AS_NUM:     printf("num:      "); break;
+                    case AS_BOOL:    printf("bool:     "); break;
+                    case AS_BINDING: printf("binding:  "); break;
+                    case AS_LIST:    printf("List:     "); break;
+                    case AS_SYMBOL:  printf("symbol:   "); break;
+                    case AS_FUNCTION:printf("function: "); break;
+                }
+                printValue(x->info);
+                printf(" has become unreachable, collecting.\n");
             }
-            printValue(x->info);
-            printf(" has become unreachable, collecting.\n");*/
             p->next = p->next->next;
             x->next = NULL;
             free(x);
@@ -316,7 +322,9 @@ List* sweep(List* env) {
     while (x->next != NULL) { x = x->next; k++; }
     collector->objList->tail = x;
     collector->objList->count = k;
-    //printf("%d Objects collected, %d colored WHITE\n", frc, nw);
+    if (traceGC) {
+        printf("%d Objects collected, %d colored WHITE\n", frc, nw);
+    }
     return env;
 }
 
