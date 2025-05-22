@@ -68,14 +68,12 @@ Atom* eval(Atom* value, List* env) {
     Atom* retval = makeNil();
     if (is_list(value)) {
         leave();
-        return evalList(value->listval, env);
+        return listEmpty(value->listval) ? value:evalList(value->listval, env);
     }
     return makeNil();
 }
 
 Atom* evalList(List* list, List* env) {
-    if (listEmpty(list))
-        return makeListAtom(list);
     if (is_symbol(first(list))) {
         SpecialForm* sf = findSpecialForm(first(list)->stringval);
         if (sf != NULL) {
@@ -83,15 +81,20 @@ Atom* evalList(List* list, List* env) {
         }
     }
     //Evalute Arguments
-    List* evald = createList();
-    for (listnode* it = list->head; it != NULL; it = it->next) {
-        evald = appendList(evald, eval(it->info, env));
-    }
+    List* evald = evalArgs(list, env);
     //Apply function
     if (is_function(first(evald))) {
         return apply(first(evald)->funcval, rest(evald)->listval, env);
     }
     return makeListAtom(evald);
+}
+
+List* evalArgs(List* list, List* env) {
+    List* evald = createList();
+    for (listnode* it = list->head; it != NULL; it = it->next) {
+        evald = appendList(evald, eval(it->info, env));
+    }
+    return evald;
 }
 
 Atom* applySpecialForm(SpecialForm* sf, List* args, List* env) {

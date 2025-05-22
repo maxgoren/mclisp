@@ -33,6 +33,7 @@
 Atom* applySpecialForm(SpecialForm* sf, List* args, List* env);
 Atom* applyMathPrim(char op, List* args);
 Atom* apply(Function* func, List* args, List* env);
+List* evalArgs(List* list, List* env);
 Atom* eval(Atom* val, List* env);
 Atom* evalList(List* list, List* env);
 Atom* envLookUp(List* env, Atom* symbol);
