@@ -41,7 +41,7 @@ List*     appendList(List* list, Atom* value);
 List*     deleteNth(List* list, int N);
 List*     copyList(List* list);
 List*     copyOmitNth(List* list, int N);
-List*     addMissing(List* dest, List* src);
+List*     mergeUnique(List* dest, List* src);
 Atom*    getFromList(List* list, int N);
 Atom*    first(List* list);
 Atom*    rest(List* list);

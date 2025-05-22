@@ -63,7 +63,7 @@ Atom* specialLet(List* args, List* env) {
     Function* func = makeLambdaFunction(vn, body, env);
     List* expr = createList();
     expr = appendList(expr, makeFunctionAtom(func));
-    expr = addMissing(expr, vv);
+    expr = mergeUnique(expr, vv);
     return eval(makeListAtom(expr), env);
 }
 

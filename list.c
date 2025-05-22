@@ -29,6 +29,13 @@ List* createList() {
     return nl;
 }
 
+listnode* makeListNode(Atom* value) {
+    listnode* ln = malloc(sizeof(listnode));
+    ln->info = value;
+    ln->next = NULL;
+    return ln;
+}
+
 List* pushList(List* list, Atom* value) {
     listnode* nl = makeListNode(value);
     nl->next = list->head;
@@ -48,13 +55,6 @@ List* appendList(List* list, Atom* value) {
     list->tail = ln;
     list->count += 1;
     return list;
-}
-
-listnode* makeListNode(Atom* value) {
-    listnode* ln = malloc(sizeof(listnode));
-    ln->info = value;
-    ln->next = NULL;
-    return ln;
 }
 
 List* copyOmitNth(List* list, int N) {
@@ -79,22 +79,12 @@ List* deleteNth(List* list, int N) {
     return nl;
 }
 
-List* addMissing(List* dest, List* src) {
+List* mergeUnique(List* dest, List* src) {
     for (listnode* it = src->head; it != NULL; it = it->next) {
         if (findList(dest, it->info) == -1)
             dest = appendList(dest, it->info);
     }
     return dest;
-}
-
-Atom* getFromList(List* list, int N) {
-    int i = 0;
-    listnode* x = list->head;
-    while (x != NULL && i < N) {
-        x = x->next;
-        i++;
-    }
-    return x == NULL ? makeListAtom(createList()):x->info;
 }
 
 Atom* first(List* list) {

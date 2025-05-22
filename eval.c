@@ -23,7 +23,7 @@ void leave() {
 
 Atom* error(char *str) {
     printf("!! Error: %s\n", str);
-    return makeNil();
+    return NIL;
 }
 
 List* makeNewEnvironment(List* vars, List* vals) {
@@ -38,14 +38,12 @@ List* makeNewEnvironment(List* vars, List* vals) {
     return nenv;
 }
 
-List* envInsert(List* env, Atom* symbol) {
-    for (listnode* it = env->head; it != NULL; it = it->next) {
-        if (compareValue(symbol->bindval->symbol, it->info->bindval->symbol)) {
-            printf("Error: A value is already associated to that symbol\n");
-            return env;
-        }
-    }
-    return appendList(env, symbol);
+
+List* prepareEnvironment(Function* func, List* args, List* env) {
+    List* nenv = makeNewEnvironment(func->freeVars, args); //  Step 1) make new env with functions arguments associated to there values
+    nenv = mergeUnique(nenv, func->env);                   //  Step 2) merge with functions defining environment (lexical scoping)
+    nenv = mergeUnique(nenv, env);                         //  Step 3) merge with functions calling environment
+    return nenv;
 }
 
 Atom* envLookUp(List* env, Atom* symbol) {
@@ -57,20 +55,24 @@ Atom* envLookUp(List* env, Atom* symbol) {
     return NIL;
 }
 
-int d = 0;
+List* envInsert(List* env, Atom* symbol) {
+    if (envLookUp(env, symbol->bindval->symbol) != NIL) {
+        printf("Error: A value is already associated to that symbol\n");
+        return env;
+    }
+    return appendList(env, symbol);
+}
+
 
 Atom* eval(Atom* value, List* env) {
-    if (trace_eval) {
-        enter("eval("); printValue(value); printf(")\n");
-    }
-    if (is_literal(value) || is_binding(value) || is_function(value)) { leave(); return value; }
-    if (is_symbol(value)) { leave(); return envLookUp(env, value); }
-    Atom* retval = makeNil();
+    if (trace_eval) { say("eval("); printValue(value); printf(")\n"); }
+    if (is_literal(value) || is_binding(value) || is_function(value)) { return value; }
+    if (is_symbol(value)) { return envLookUp(env, value); }
     if (is_list(value)) {
-        leave();
-        return listEmpty(value->listval) ? value:evalList(value->listval, env);
+        if (listEmpty(value->listval)) { return value; } 
+        else { return evalList(value->listval, env); }
     }
-    return makeNil();
+    return NIL;
 }
 
 Atom* evalList(List* list, List* env) {
@@ -102,32 +104,12 @@ Atom* applySpecialForm(SpecialForm* sf, List* args, List* env) {
         enter("apply special("); printf("%s ", sf->name->data); printList(args); printf(")\n");
     }
     List* evald = createList();
-    listnode* it = args->head; 
     int i = 0; 
-    while (it != NULL) {
-        Atom* result = it->info;
-        if (i < sf->numArgs && sf->flags[i] == EVAL) {
-            result = eval(result, env);
-        }
-        evald = appendList(evald, result);
-        it = it->next;
-        i++;
+    for (listnode* it = args->head; it != NULL; it = it->next) {
+        evald = appendList(evald, (sf->flags[i++] == EVAL) ? eval(it->info, env):it->info);
     }
     leave();
     return sf->func(evald, env);
-}
-
-
-/*
-    Step 1) make new env with functions arguments associated to there values
-    Step 2) merge with functions defining environment (lexical scoping)
-    Step 3) merge with functions calling environment
-*/
-List* prepareEnvironment(Function* func, List* args, List* env) {
-    List* nenv = makeNewEnvironment(func->freeVars, args);
-    nenv = addMissing(nenv, func->env);
-    nenv = addMissing(nenv, env);
-    return nenv;
 }
 
 Atom* apply(Function* func, List* args, List* env) {
@@ -187,4 +169,3 @@ Atom* applyMathPrim(char op, List* list) {
     leave();
     return makeIntAtom(result);
 }
-
