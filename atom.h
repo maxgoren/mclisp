@@ -145,5 +145,5 @@ void initGC();
 void registerObject(GC* gc, Atom* val);
 List* mark(List* env);
 List* sweep(List* env);
-
+List* runGC(List* env);
 #endif

@@ -323,8 +323,14 @@ List* sweep(List* env) {
     collector->objList->tail = x;
     collector->objList->count = k;
     if (traceGC) {
-        printf("%d Objects collected, %d colored WHITE\n", frc, nw);
+        printf("%d Objects collected, %d colored WHITE\n", frc, k);
     }
+    return env;
+}
+
+List* runGC(List* env) {
+    env = mark(env);
+    env = sweep(env);
     return env;
 }
 

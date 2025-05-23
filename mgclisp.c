@@ -7,16 +7,6 @@
 
 */  
  
-char *funcs[NUM_PREDEFS] = {
-    "(define empty? (& (x) (eq x () ) ) )",
-    "(define count? (& (xs) (if (empty? xs) 0 (+ 1 (count? (cdr xs) ) ) ) ) )",
-    "(define map (& (f xs) (if (empty? xs) () (cons (f (car xs)) (map f (cdr xs) ) ) ) ) )",
-    "(define filter (& (f xs) (if (empty? xs) () (if (f (car xs)) (cons (car xs) (filter f (cdr xs))) (filter f (cdr xs) ) ) ) )",
-    "(define nth (& (n xs) (if (eq n 0) (car xs) (nth (- n 1) (cdr xs)) ) ) )",
-    "(define even? (& (n) (eq (mod n 2) 0) ) )",
-    "(define (delay exp) (lambda () (exp)))",
-    "(define (force exp) (exp))"
-};
 
 List* init(List* env) {
     printf("Initalizing mgclisp...\n");
@@ -27,21 +17,15 @@ List* init(List* env) {
     printf("Loading Primitives...\n");
     env = createPrimitive(env, makeString("id", 2), &primId);
     env = createPrimitive(env, makeString("+", 1), &primPlus);
-    env = createPrimitive(env, makeString("add", 3), &primPlus);
     env = createPrimitive(env, makeString("-", 1), &primMinus);
-    env = createPrimitive(env, makeString("sub", 3), &primMinus);
     env = createPrimitive(env, makeString("*", 1), &primMul);
-    env = createPrimitive(env, makeString("mul", 3), &primMul);
     env = createPrimitive(env, makeString("/", 1), &primDiv);
-    env = createPrimitive(env, makeString("div", 3), &primDiv);
     env = createPrimitive(env, makeString("%", 1), &primMod);
-    env = createPrimitive(env, makeString("mod", 3), &primMod);
     env = createPrimitive(env, makeString("car", 3), &primCar);
     env = createPrimitive(env, makeString("cdr", 3), &primCdr);
     env = createPrimitive(env, makeString("cons", 4), &primCons);
     env = createPrimitive(env, makeString("append", 6), &primAppend);
     env = createPrimitive(env, makeString("eq", 2), &primEqual);
-    env = createPrimitive(env, makeString("eq?", 3), &primEqual);
     env = createPrimitive(env, makeString("=", 1), &primEqual);
     env = createPrimitive(env, makeString("lt", 2), &primLess);
     env = createPrimitive(env, makeString("<", 1), &primLess);
@@ -60,8 +44,7 @@ List* init(List* env) {
     env = createPrimitive(env, makeString("join", 4), &primJoin);
     env = createPrimitive(env, makeString("apply", 5), &primApply);
     printf("Initializing Standard Library..");
-    for (int i = 0; i < NUM_PREDEFS; i++) 
-        eval(makeListAtom(stringToList(funcs[i])), env);
+    runScript("stdlib.scm", env);
     printf("MGCLisp Loaded Successfully.\n");
     return env;
 }
@@ -70,7 +53,7 @@ void repl() {
     List* env = createList();
     env = init(env);
     int ecnt = 0;
-    char buff[255];
+    char buff[1024];
     for (;;) {
         printf("misp(%d)> ", ecnt++);
         fgets(buff, sizeof(buff), stdin);
@@ -85,9 +68,71 @@ void repl() {
             printf(" => ");
             printValue(eval(makeListAtom(asList), env));
             printf("\n");
-            env = mark(env);
-            env = sweep(env);
+            env = runGC(env);
         }
         memset(buff, '\0', sizeof(buff));
     }
 }
+
+char* extractExpr(FILE* fd) {
+    char* expr = malloc(sizeof(char) * 1024);
+    int i = 0;
+    int lp = 0, rp = 0;
+    char ch;
+    while ((ch = fgetc(fd)) != EOF) {
+        if (ch == '(') {
+            lp++;
+            expr[i++] = ch;
+            break;
+        }
+    }
+    while ((ch = fgetc(fd)) != EOF) {
+        if (ch == '(') lp++;
+        else if (ch == ')') rp++;
+        expr[i++] = ch;
+        if (lp == rp)
+            break;
+    }
+    expr[i++] = '\0';
+    return expr;
+}
+
+void runScript(char* filename, List* env) {
+    FILE* fd = fopen(filename, "r");
+    if (fd == NULL) {
+        printf("Error opening file %s, bailing out!", filename);
+        return;
+    } else {
+        printf("Loading: %s\n", filename);
+    }
+    char ch;
+    char *str;
+    Atom* result;
+    while ((ch = fgetc(fd)) != EOF) {
+            str = extractExpr(fd);
+            List* asList = stringToList(str);
+            result = eval(makeListAtom(asList), env);
+            printf(" => ");
+            printValue(result);
+            printf("\n");
+    }
+}
+
+/*
+(define (adjoin-set x set) 
+        (cond ((empty? set) (make-tree x '() '()))
+              ((eq x (entry set)) set)
+              ((lt x (entry set)) (make-tree (entry set) 
+                                              (adjoin-set x (left-branch set))  
+                                              (right-branch set)))
+               ((gt x (entry set)) (make-tree (entry set) 
+                                              (left-branch set)
+                                              (adjoin-set x (right-branch set))))))
+(define (set-member? x set)
+        (cond ((empty? set) set)
+        ((lt x (entry set)) (set-member? x (left-branch set))
+        ((gt x (entry set)) (set-member? x (right-branch set))
+        (else (entry set))
+        ))
+*/
+

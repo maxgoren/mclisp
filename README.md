@@ -6,11 +6,14 @@ implementing tail recursion, so loop with care.
 
 ## primitives:
     
-    + - * / %
-    lt gt lte gte eq
-    not or and
-    car cdr cons list append join
-    say id min max
+    + - * / % - arithmatic operators
+    lt gt lte gte eq - equality and comparison
+    not or and - logic operators
+    car cdr cons list append join - list operators
+    say - prints expression to terminal
+    id  - returns type of atom
+    min - returns min element of list 
+    max - returns max element of list
 
 ## Special Forms:
 
@@ -41,3 +44,12 @@ or the equivelant expression:
                                 (define (double-it x) (+ x x))
     
     
+## standard library
+        empty? - check if atom is an empty list
+        count? - get number of list elements
+        map    - map values of one list to their result in another list using a function
+        filter - return memebrs of a list matching a predicate
+        reduce - run a collect operation on a list
+        nth    - return nth list element
+        delay  - delay evaluation
+        force  - force evaluation

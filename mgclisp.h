@@ -10,7 +10,7 @@
 #include "eval.h"
 #include "primitives.h"
 #include "specialform.h"
-#define NUM_PREDEFS 8
+#define NUM_PREDEFS 15
 
 /*
     MIT License
@@ -43,6 +43,7 @@ extern char* funcs[NUM_PREDEFS];
 extern List* env;
 List* init(List*);
 void repl();
+void runScript(char* filename, List* env);
 
 
 #endif

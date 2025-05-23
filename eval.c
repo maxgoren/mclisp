@@ -84,11 +84,13 @@ Atom* evalList(List* list, List* env) {
     }
     //Evalute Arguments
     List* evald = evalArgs(list, env);
+    Atom* retval = makeListAtom(evald);
     //Apply function
     if (is_function(first(evald))) {
-        return apply(first(evald)->funcval, rest(evald)->listval, env);
+        retval = apply(first(evald)->funcval, rest(evald)->listval, env);
     }
-    return makeListAtom(evald);
+    env = runGC(env);
+    return retval;
 }
 
 List* evalArgs(List* list, List* env) {

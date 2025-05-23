@@ -35,9 +35,9 @@ int main(int argc, char *argv[]) {
     if (argc < 2) {
         repl();
     } else {
-        trace_eval = true;
-        traceGC = true;
-        repl();
+        List* env = createList();
+        env = init(env);
+        runScript(argv[1], env);
     }
     return 0;
 }
