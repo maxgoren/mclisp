@@ -18,7 +18,9 @@ void say(char* str) {
     }
 }
 void leave() {
-    dep--;
+    if (trace_eval) {
+        dep--;
+    }
 }
 
 Atom* error(char *str) {
@@ -65,13 +67,15 @@ List* envInsert(List* env, Atom* symbol) {
 
 
 Atom* eval(Atom* value, List* env) {
-    if (trace_eval) { say("eval("); printValue(value); printf(")\n"); }
-    if (is_literal(value) || is_binding(value) || is_function(value)) { return value; }
-    if (is_symbol(value)) { return envLookUp(env, value); }
+    enter("eval("); if (trace_eval) { printValue(value); printf(")\n"); }
+    if (is_literal(value) || is_binding(value) || is_function(value)) { leave(); return value; }
+    if (is_symbol(value)) { leave(); return envLookUp(env, value); }
     if (is_list(value)) {
+        leave();
         if (listEmpty(value->listval)) { return value; } 
         else { return evalList(value->listval, env); }
     }
+    leave();
     return NIL;
 }
 
@@ -102,9 +106,7 @@ List* evalArgs(List* list, List* env) {
 }
 
 Atom* applySpecialForm(SpecialForm* sf, List* args, List* env) {
-    if (trace_eval) {
-        enter("apply special("); printf("%s ", sf->name->data); printList(args); printf(")\n");
-    }
+    enter("apply special(");     if (trace_eval) { printf("%s ", sf->name->data); printList(args); printf(")\n"); }
     List* evald = createList();
     int i = 0; 
     for (listnode* it = args->head; it != NULL; it = it->next) {
@@ -115,9 +117,7 @@ Atom* applySpecialForm(SpecialForm* sf, List* args, List* env) {
 }
 
 Atom* apply(Function* func, List* args, List* env) {
-    if (trace_eval) {
-        enter("apply("); printList(args); printf(")\n");
-    }
+    enter("apply("); if (trace_eval) { printList(args); printf(")\n"); }
     if (is_primitive(func)) {
         say("function is a primitive\n");
         leave();
@@ -135,10 +135,8 @@ Atom* apply(Function* func, List* args, List* env) {
 
 Atom* applyMathPrim(char op, List* list) {
     char msg[255];
-    if (trace_eval) {
-        sprintf(msg, "apply math prim (%c ", op);
-        enter(msg); printList(list); printf("\n");
-    }
+    sprintf(msg, "apply math prim (%c ", op);
+    enter(msg); if (trace_eval) { printList(list); printf("\n"); }
     int result = first(list)->intval;
     if (list->count == 1 && op == '-')
         return makeIntAtom(-result);

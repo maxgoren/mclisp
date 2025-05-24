@@ -252,14 +252,16 @@ void freeString(String* str) {
     free(str->data);
     free(str);
 }
-
+int NEXT_GC_LIMIT;
 void initGC() {
+    NEXT_GC_LIMIT = 50;
     collector = malloc(sizeof(GC));
     collector->objList = createList();
 }
 
 void registerObject(GC* gc, Atom* val) {
     val->mark = WHITE;
+    val->refCnt = 0;
     gc->objList = appendList(gc->objList, val);
 }
 
@@ -275,8 +277,9 @@ List* mark(List* env) {
         if (x->info->type == AS_BINDING) {
             x->info->bindval->symbol->mark = GREY;
             x->info->bindval->value->mark = GREY;
-            if (x->info->bindval->value->type == AS_LIST)
+            if (x->info->bindval->value->type == AS_LIST) {
                 mark(x->info->bindval->value->listval);
+            }
         } else if (x->info->type == AS_LIST) {
             mark(x->info->listval);
         }
@@ -307,9 +310,16 @@ List* sweep(List* env) {
             }
             p->next = p->next->next;
             x->next = NULL;
+            x->info->refCnt--;
+            printf("refcnt: %d ", x->info->refCnt);
+            if (x->info->refCnt < 0) {
+                printf(" - collecting.");
+                free(x->info);
+                frc++;
+            } 
+            printf("\n");
             free(x);
             x = p->next;
-            frc++;
         } else {
             p = x;
             x = x->next;
@@ -322,15 +332,18 @@ List* sweep(List* env) {
     while (x->next != NULL) { x = x->next; k++; }
     collector->objList->tail = x;
     collector->objList->count = k;
-    if (traceGC) {
+    //if (traceGC) {
         printf("%d Objects collected, %d colored WHITE\n", frc, k);
-    }
+    //}
     return env;
 }
 
 List* runGC(List* env) {
-    env = mark(env);
-    env = sweep(env);
+    if (listSize(env) >= NEXT_GC_LIMIT)  {
+        env = mark(env);
+        env = sweep(env);
+        NEXT_GC_LIMIT += (double)NEXT_GC_LIMIT*0.25;
+    }
     return env;
 }
 

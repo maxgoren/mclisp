@@ -1,7 +1,6 @@
 #include <stdio.h>
-#include <ctype.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 #include "mgclisp.h"  
 
 /*
@@ -31,13 +30,38 @@
 
 */
 
+void showHelp() {
+    showVersion();
+    printf("  Usage: \n");
+    printf("    misp <options> [filename]\n");
+    printf("         -h  view this screen\n");
+    printf("         -v  start in verbose mode\n");
+    printf("(c) 2024 MaxGCoding.com\n");
+}
+
+void parseOptions(int argc, char* argv[]) {
+    List* env = createList();
+    if (argv[1][0] == '-') {
+        switch (argv[1][1]) {
+            case 'h': { showHelp(); return; } break;
+            case 'v': { trace_eval = true; } break;
+            default: break;
+        }
+        if (argc == 3) {
+            env = init(env);
+            runScript(argv[2], env);
+        } else repl();
+    } else {
+        env = init(env);
+        runScript(argv[1], env);
+    }
+}
+
 int main(int argc, char *argv[]) {
     if (argc < 2) {
         repl();
     } else {
-        List* env = createList();
-        env = init(env);
-        runScript(argv[1], env);
+        parseOptions(argc, argv);
     }
     return 0;
 }

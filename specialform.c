@@ -1,5 +1,6 @@
 #include "specialform.h"
 #include "list.h"
+#include "hashtable.h"
 #include <stdio.h>
 
 /*
@@ -7,9 +8,7 @@
 (define <label> <value>)
 
 (define (func x y) (+ x y)) -> (define func (lambda (x y) (+ x y)))
-if (typeof first (list))
 
-else
 */
 Atom* sfDefine(List* args, List* env) {
     Atom* oprndA = first(args);

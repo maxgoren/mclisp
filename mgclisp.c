@@ -5,11 +5,30 @@
     (define fact (& (x) (do (define fact-iter (& (prod cnt max) (if (eq cnt max) (* prod cnt) (fact-iter (* prod cnt) (+ 1 cnt) max)))) (fact-iter 1 1 x))))
     (define MUL (& (m n) (if (eq n 0) 0 (+ m (MUL m (- n 1))))))
 
-*/  
- 
+    
+    (define (adjoin-set x set) 
+        (cond ((empty? set) (make-tree x '() '()))
+              ((eq x (entry set)) set)
+              ((lt x (entry set)) (make-tree (entry set) 
+                                              (adjoin-set x (left-branch set))  
+                                              (right-branch set)))
+               ((gt x (entry set)) (make-tree (entry set) 
+                                              (left-branch set)
+                                              (adjoin-set x (right-branch set))))))
+    (define (set-member? x set)
+        (cond ((empty? set) set)
+        ((lt x (entry set)) (set-member? x (left-branch set))
+        ((gt x (entry set)) (set-member? x (right-branch set))
+        (else (entry set))
+        ))
+*/
+
+void showVersion() {
+    printf("misp v%d.%d\n", MAJOR_VERSION, MINOR_VERSION);
+}
 
 List* init(List* env) {
-    printf("Initalizing mgclisp...\n");
+    showVersion();
     initGC();
     NIL = makeListAtom(createList());
     printf("GC Initialized...\n");
@@ -43,10 +62,20 @@ List* init(List* env) {
     env = createPrimitive(env, makeString("list", 4), &primList);
     env = createPrimitive(env, makeString("join", 4), &primJoin);
     env = createPrimitive(env, makeString("apply", 5), &primApply);
-    printf("Initializing Standard Library..");
     runScript("stdlib.scm", env);
-    printf("MGCLisp Loaded Successfully.\n");
+    printf("misp successfully initalized.\n");
     return env;
+}
+
+char* getfilename(char* buff) {
+    int i = 0;
+    while (buff[i] != '\0' && buff[i] != ' ') i++;
+    int l = i+1;
+    while (buff[i] != '\0' && buff[i] != '\n') i++;
+    int r = i;
+    char* fname = malloc(sizeof(char)*r-l+1);
+    strncpy(fname, buff+l, r-l);
+    return fname;
 }
 
 void repl() {
@@ -61,6 +90,7 @@ void repl() {
             switch (buff[1]) {
                 case 'q': return;
                 case 't': trace_eval = !trace_eval; break;
+                case 'i': runScript(getfilename(buff), env);
                 default: break;
             }
         } else {
@@ -112,27 +142,6 @@ void runScript(char* filename, List* env) {
             str = extractExpr(fd);
             List* asList = stringToList(str);
             result = eval(makeListAtom(asList), env);
-            printf(" => ");
-            printValue(result);
-            printf("\n");
     }
 }
-
-/*
-(define (adjoin-set x set) 
-        (cond ((empty? set) (make-tree x '() '()))
-              ((eq x (entry set)) set)
-              ((lt x (entry set)) (make-tree (entry set) 
-                                              (adjoin-set x (left-branch set))  
-                                              (right-branch set)))
-               ((gt x (entry set)) (make-tree (entry set) 
-                                              (left-branch set)
-                                              (adjoin-set x (right-branch set))))))
-(define (set-member? x set)
-        (cond ((empty? set) set)
-        ((lt x (entry set)) (set-member? x (left-branch set))
-        ((gt x (entry set)) (set-member? x (right-branch set))
-        (else (entry set))
-        ))
-*/
 

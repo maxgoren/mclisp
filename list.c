@@ -54,6 +54,7 @@ List* appendList(List* list, Atom* value) {
     }
     list->tail = ln;
     list->count += 1;
+    value->refCnt++;
     return list;
 }
 
@@ -81,8 +82,9 @@ List* deleteNth(List* list, int N) {
 
 List* mergeUnique(List* dest, List* src) {
     for (listnode* it = src->head; it != NULL; it = it->next) {
-        if (findList(dest, it->info) == -1)
+        if (findList(dest, it->info) == -1) {
             dest = appendList(dest, it->info);
+        }
     }
     return dest;
 }

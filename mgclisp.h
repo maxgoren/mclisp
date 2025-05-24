@@ -10,7 +10,6 @@
 #include "eval.h"
 #include "primitives.h"
 #include "specialform.h"
-#define NUM_PREDEFS 15
 
 /*
     MIT License
@@ -39,11 +38,14 @@
 
 */
 
-extern char* funcs[NUM_PREDEFS];
+#define MAJOR_VERSION 0
+#define MINOR_VERSION 61
+
 extern List* env;
 List* init(List*);
 void repl();
+char* getfilename(char* buff);
 void runScript(char* filename, List* env);
-
+void showVersion();
 
 #endif

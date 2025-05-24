@@ -52,6 +52,7 @@ typedef struct {
         SpecialForm* sf;
     };
     int mark;
+    int refCnt;
 } Atom;
 
 
@@ -138,9 +139,11 @@ bool is_lambda(Function* func);
 
 #define WHITE  0
 #define GREY   1
+#define BLACK  2
 extern bool traceGC;
 extern GC* gc;
 extern Atom* NIL;
+extern int NEXT_GC_LIMIT;
 void initGC();
 void registerObject(GC* gc, Atom* val);
 List* mark(List* env);
