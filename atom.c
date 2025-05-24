@@ -314,7 +314,7 @@ List* sweep(List* env) {
             printf("refcnt: %d ", x->info->refCnt);
             if (x->info->refCnt < 0) {
                 printf(" - collecting.");
-                free(x->info);
+             //   free(x->info);
                 frc++;
             } 
             printf("\n");
@@ -342,7 +342,7 @@ List* runGC(List* env) {
     if (listSize(env) >= NEXT_GC_LIMIT)  {
         env = mark(env);
         env = sweep(env);
-        NEXT_GC_LIMIT += (double)NEXT_GC_LIMIT*0.25;
+        NEXT_GC_LIMIT *= 2;
     }
     return env;
 }

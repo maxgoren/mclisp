@@ -1,6 +1,5 @@
 #include "specialform.h"
 #include "list.h"
-#include "hashtable.h"
 #include <stdio.h>
 
 /*

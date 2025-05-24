@@ -29,6 +29,7 @@
     OTHER DEALINGS IN THE SOFTWARE.
 
 */
+#define NOT_FOUND -1
 
 int       listSize(List* list);
 int       findList(List* list, Atom* value);
@@ -44,6 +45,7 @@ List*     copyOmitNth(List* list, int N);
 List*     mergeUnique(List* dest, List* src);
 Atom*    getFromList(List* list, int N);
 Atom*    first(List* list);
+Atom*    second(List* list);
 Atom*    rest(List* list);
 listnode* makeListNode(Atom* value);
 

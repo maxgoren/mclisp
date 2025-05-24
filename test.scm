@@ -1,5 +1,5 @@
-(do (define fib (& (x) (do (define fib-iter (& (curr prev cnt max) (if (eq cnt max) curr (fib-iter (+ prev curr) curr (+ cnt 1) max)))) (fib-iter 1 1 1 x))))
+(do (define fib (& (x) (do (define fib-iter (& (curr prev cnt max) (if (eq cnt max) curr (fib-iter (+ prev curr) curr (+ cnt 1) max)))) (fib-iter 1 1 1 x)))))
 (define fact (& (x) (do (define fact-iter (& (prod cnt max) (if (eq cnt max) (* prod cnt) (fact-iter (* prod cnt) (+ 1 cnt) max)))) (fact-iter 1 1 x))))
-(define MUL (& (m n) (if (eq n 0) 0 (+ m (MUL m (- n 1)))))))
+(define MUL (& (m n) (if (eq n 0) 0 (+ m (MUL m (- n 1))))))
 (say (list 'fibonacci-6 (fib 6)))
 (say (list 'factorial-5 (fact 5)))

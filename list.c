@@ -18,7 +18,7 @@ int findList(List* list, Atom* value) {
             return k;
         k++;
     }
-    return -1;
+    return NOT_FOUND;
 }
 
 List* createList() {
@@ -82,7 +82,7 @@ List* deleteNth(List* list, int N) {
 
 List* mergeUnique(List* dest, List* src) {
     for (listnode* it = src->head; it != NULL; it = it->next) {
-        if (findList(dest, it->info) == -1) {
+        if (findList(dest, it->info) == NOT_FOUND) {
             dest = appendList(dest, it->info);
         }
     }
@@ -90,7 +90,13 @@ List* mergeUnique(List* dest, List* src) {
 }
 
 Atom* first(List* list) {
-    return (list == NULL || list->head == NULL) ? makeListAtom(createList()):list->head->info;
+    return (list == NULL || list->head == NULL) ? NIL:list->head->info;
+}
+
+Atom* second(List* list) {
+    if (list && list->head && list->head->next)
+        return list->head->next->info;
+    return NIL;
 }
 
 Atom* rest(List* list) {
