@@ -131,7 +131,7 @@ void initSpecialForms() {
     specialForms = appendList(specialForms, createSpecialForm(makeString("lambda", 6), 2, flags, &sfLambda));
     specialForms = appendList(specialForms, createSpecialForm(makeString("&", 1), 2, flags, &sfLambda));
     specialForms = appendList(specialForms, createSpecialForm(makeString("'", 1), 0, flags, &sfQuote));
-    specialForms = appendList(specialForms, createSpecialForm(makeString("quote", 1), 0, flags, &sfQuote));
+    specialForms = appendList(specialForms, createSpecialForm(makeString("quote", 5), 0, flags, &sfQuote));
     specialForms = appendList(specialForms, createSpecialForm(makeString("cond",4), 0, flags, &specialCond));
     specialForms = appendList(specialForms, createSpecialForm(makeString("do",2), 0, flags, &sfDo));
     specialForms = appendList(specialForms, createSpecialForm(makeString("define", 6), 2, flags, &sfDefine));

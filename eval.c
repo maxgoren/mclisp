@@ -93,7 +93,7 @@ Atom* evalList(List* list, List* env) {
     if (is_function(first(evald))) {
         retval = apply(first(evald)->funcval, rest(evald)->listval, env);
     }
-    //env = runGC(env);
+    env = runGC(env);
     return retval;
 }
 

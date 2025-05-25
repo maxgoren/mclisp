@@ -77,7 +77,7 @@ List* stringToList(char* buff) {
     List* result = createList();
     int i = 0;
     bool quoted = false;
-    if (buff[i] == '(') { i++; lp++;} else { printf("Wheres me list then?\n"); return result; }
+    if (buff[i] == '(') { i++; lp++;} else { printf("Wheres me list then? %s\n", buff); return result; }
     for (; buff[i];) {
         if (shouldSkip(buff[i])) {
             i++; continue;

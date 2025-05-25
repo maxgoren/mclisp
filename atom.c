@@ -296,28 +296,19 @@ List* sweep(List* env) {
     int frc = 0, nw = 0;
     while (x != NULL) {
         if (x->info->mark != GREY) {
-            if (traceGC) {
-                switch (x->info->type) {
-                    case AS_NUM:     printf("num:      "); break;
-                    case AS_BOOL:    printf("bool:     "); break;
-                    case AS_BINDING: printf("binding:  "); break;
-                    case AS_LIST:    printf("List:     "); break;
-                    case AS_SYMBOL:  printf("symbol:   "); break;
-                    case AS_FUNCTION:printf("function: "); break;
-                }
-                printValue(x->info);
-                printf(" has become unreachable, collecting.\n");
-            }
             p->next = p->next->next;
             x->next = NULL;
             x->info->refCnt--;
-            printf("refcnt: %d ", x->info->refCnt);
-            if (x->info->refCnt < 0) {
-                printf(" - collecting.");
-             //   free(x->info);
+            if (x->info->refCnt == 0) {
+                /*switch (x->info->type) {
+                    case AS_LIST: { freeList(x->info->listval); free(x->info); } break;
+                    case AS_BINDING:
+                    case AS_SYMBOL: { free(x->info->stringval); free(x->info); } break;
+                    default:
+                        break;
+                }*/
                 frc++;
             } 
-            printf("\n");
             free(x);
             x = p->next;
         } else {
@@ -332,9 +323,9 @@ List* sweep(List* env) {
     while (x->next != NULL) { x = x->next; k++; }
     collector->objList->tail = x;
     collector->objList->count = k;
-    //if (traceGC) {
+    if (traceGC) {
         printf("%d Objects collected, %d colored WHITE\n", frc, k);
-    //}
+    }
     return env;
 }
 
@@ -342,7 +333,7 @@ List* runGC(List* env) {
     if (listSize(env) >= NEXT_GC_LIMIT)  {
         env = mark(env);
         env = sweep(env);
-        NEXT_GC_LIMIT *= 2;
+        NEXT_GC_LIMIT += NEXT_GC_LIMIT/2;
     }
     return env;
 }

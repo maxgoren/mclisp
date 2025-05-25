@@ -62,7 +62,7 @@ List* init(List* env) {
     env = createPrimitive(env, makeString("list", 4), &primList);
     env = createPrimitive(env, makeString("join", 4), &primJoin);
     env = createPrimitive(env, makeString("apply", 5), &primApply);
-    runScript("stdlib.scm", env);
+    runScript("/usr/local/etc/stdlib.scm", env);
     printf("misp successfully initalized.\n");
     return env;
 }
