@@ -338,13 +338,8 @@ List* runGC(List* env) {
     return env;
 }
 
-List* addBindingToEnvironment(List* env, Binding* binding) {
-    env = appendList(env, makeBindingAtom(binding));
-    return env;
-}
-
 List* createPrimitive(List* env, String* symbol, Atom* (func)(List*)) {
-    env = addBindingToEnvironment(env, makeBinding(makeSymbolAtom(symbol), 
-                                                   makeFunctionAtom(makePrimitveFunction(func))));
+    env = appendList(env, makeBindingAtom(makeBinding(makeSymbolAtom(symbol), 
+                                                   makeFunctionAtom(makePrimitveFunction(func)))));
     return env;
 }

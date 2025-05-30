@@ -30,6 +30,7 @@ void showVersion() {
 List* init(List* env) {
     showVersion();
     initGC();
+    NIL = makeNil();
     NIL = makeListAtom(createList());
     printf("GC Initialized...\n");
     initSpecialForms();

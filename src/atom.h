@@ -123,7 +123,6 @@ Atom* makeFunctionAtom(Function* function);
 Atom* makeNil();
 Function* makePrimitveFunction(Atom* (*func)(List*));
 Function* makeLambdaFunction(List* vars, List* code, List* env);
-List* addBindingToEnvironment(List*,Binding*);
 List* createPrimitive(List*,String*,Atom* (func)(List*));
 void freeValue(Atom* value);
 void freeBinding(Binding* binding);
